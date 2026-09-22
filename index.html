@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>jevtool — Unix tools with judgment</title>
+<meta name="description" content="Semantic tools for your shell: grep, sort, lint and tail with judgment. Explore the jevtool preview and get early access.">
+<link rel="canonical" href="https://jevtool.dev/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="jevtool — Unix tools with judgment">
+<meta property="og:description" content="Semantic tools for your shell. Explore the preview and get early access.">
+<meta property="og:url" content="https://jevtool.dev/">
+<meta property="og:site_name" content="jevtool">
+<meta name="theme-color" content="#f386a1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700&family=Fragment+Mono&display=swap">
+<style>
+:root{
+  --pink:#f386a1; --ink:#1e1e1e; --paper:#fefefe; --line:#e5e5e5; --mute:#49393f;
+  --teal:#09aea1; --green:#03aa5c; --magenta:#d45bb6;
+  --sans:"Host Grotesk","Helvetica Neue",Arial,sans-serif;
+  --mono:"Fragment Mono","JetBrains Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pink);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;padding-block:0 64px;padding-inline:clamp(16px,4vw,40px)}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto}
+/* nav */
+nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--ink);flex-wrap:wrap}
+nav .brand{font-weight:600;letter-spacing:-.01em}
+nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;font-size:14px}
+nav .cta{background:var(--ink);color:var(--paper);padding:6px 12px;text-decoration:none;font-size:14px}
+/* retro window */
+.win{background:var(--paper);border:1px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.win .bar{background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:11px;padding:3px 8px;display:flex;justify-content:space-between;letter-spacing:.02em}
+.win .body{padding:16px}
+/* section brackets */
+section{position:relative;padding:48px 18px;margin-top:8px}
+section::before,section::after{content:"";position:absolute;width:14px;height:14px;border:1px solid var(--ink);opacity:.7}
+section::before{top:10px;left:0;border-right:0;border-bottom:0}
+section::after{bottom:10px;right:0;border-left:0;border-top:0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+h1{font-size:clamp(40px,7vw,84px);line-height:.98;letter-spacing:-.03em;font-weight:500;margin:0 0 18px;text-wrap:balance}
+h2{font-size:clamp(30px,5vw,54px);line-height:1.02;letter-spacing:-.025em;font-weight:500;margin:0 0 14px;text-wrap:balance}
+h3{font-size:15px;font-weight:600;margin:0 0 4px}
+p{margin:0 0 10px;max-width:62ch}
+.lede{font-size:18px;max-width:56ch}
+/* hero grid */
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:start}
+.term{font-family:var(--mono);font-size:12.5px;line-height:1.6;white-space:pre;overflow-x:auto;padding:14px 16px;margin:0}
+.term .p{color:var(--magenta)} .term .hit{color:var(--green)} .term .dim{color:#8a8a8a} .term .pr{color:var(--teal)}
+.b64{font-family:var(--mono);font-size:10px;line-height:1.35;word-break:break-all;color:rgba(30,30,30,.55);max-width:220px}
+/* tool grid */
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.tool .bar span:last-child{opacity:.7}
+.tool .name{font-family:var(--mono);font-size:22px;margin:0 0 6px}
+.tool .prim{display:inline-block;font-family:var(--mono);font-size:10px;border:1px solid var(--ink);padding:1px 6px;margin-bottom:8px}
+.tool p{font-size:14px;margin:0}
+/* three cols */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0;border-top:1px solid var(--ink)}
+.cols>div{padding:18px 18px 18px 0;border-right:1px solid rgba(30,30,30,.35)}
+.cols>div:last-child{border-right:0}
+.cols>div+div{padding-left:18px}
+/* big numbers */
+.nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.num .v{font-size:clamp(44px,6vw,72px);letter-spacing:-.03em;line-height:1;font-weight:500;font-variant-numeric:tabular-nums}
+.num .k{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
+.num .d{font-size:13px;color:var(--mute);margin-top:4px}
+/* playground */
+.play{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.play>div{padding:14px 16px}
+.play>div:first-child{border-right:1px solid var(--line)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.chip{font-family:var(--mono);font-size:12px;border:1px solid var(--ink);background:var(--paper);padding:4px 9px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.chip:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+pre.json{font-family:var(--mono);font-size:12px;line-height:1.5;margin:0;white-space:pre-wrap;word-break:break-word;background:#f6f6f6;border:1px solid var(--line);padding:10px}
+.bars{display:grid;gap:10px;margin-top:10px}
+.barrow{font-family:var(--mono);font-size:12px}
+.barrow .lbl{display:flex;justify-content:space-between;margin-bottom:3px}
+.barrow .trk{height:10px;border:1px solid var(--ink);background:var(--paper)}
+.barrow .fil{height:100%;background:var(--teal);transition:width .35s ease}
+.meta{font-family:var(--mono);font-size:11px;color:var(--mute);margin-top:10px}
+/* base url */
+.baseurl{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+code.inl{font-family:var(--mono);font-size:13px;background:#f6f6f6;border:1px solid var(--line);padding:2px 6px}
+footer{margin-top:40px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:11px;border-top:1px solid var(--ink);padding-top:14px}
+@media (max-width:760px){.hero,.play,.baseurl{grid-template-columns:1fr}.play>div:first-child{border-right:0;border-bottom:1px solid var(--line)}.b64{display:none}}
+@media (prefers-reduced-motion:reduce){.barrow .fil{transition:none}}
+/* Keep grid children inside the viewport; only the terminal scrolls. */
+.hero>*{min-width:0}
+.play>*{min-width:0}
+nav a:not(.cta){text-decoration:none}
+nav a:hover{text-decoration:underline}
+a:focus-visible,button:focus-visible,input:focus-visible,pre:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+.term .p{color:#923876}.term .hit{color:#087d42}.term .dim{color:#707070}.term .pr{color:#007c73}
+.skip{position:absolute;top:8px;left:16px;background:var(--ink);color:var(--paper);padding:8px 12px;z-index:2;transform:translateY(-160%)}
+.skip:focus{transform:none}
+.preview-note{font-size:14px;color:var(--mute);margin-top:12px}
+.signup{max-width:720px;margin:0 auto}
+.signup .body{padding:24px}
+.signup label{display:block;font-weight:600;margin:16px 0 6px}
+.signup-row{display:flex;gap:10px}
+.signup input{min-width:0;flex:1;width:100%;border:1px solid var(--ink);border-radius:0;background:var(--paper);padding:12px;font:inherit}
+.signup input::placeholder{color:#686868}
+.signup button{border:1px solid var(--ink);background:var(--ink);color:var(--paper);font:inherit;padding:12px 16px;cursor:pointer;white-space:nowrap}
+.signup button:disabled{opacity:.7;cursor:wait}
+.signup .note{font-size:14px;color:var(--mute);margin:10px 0 0}
+.form-status{min-height:1.6em;font-size:14px;margin:10px 0 0}
+.honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+@media(max-width:480px){
+  nav ul{order:3;flex-basis:100%;gap:20px}
+  section{padding:36px 8px}
+  .tools,.cols,.nums{grid-template-columns:minmax(0,1fr)}
+  .cols>div,.cols>div+div{padding:16px 0;border-right:0}
+  .baseurl pre.json{min-width:0!important}
+  .signup .body{padding:18px}
+  .signup-row{flex-direction:column}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<div class="wrap">
+<nav aria-label="Main navigation">
+  <div class="brand">jevtool.dev</div>
+  <ul><li><a href="#tools">Tools</a></li><li><a href="#playground">Playground</a></li><li><a href="#docs">Docs</a></li><li><a href="https://github.com/jevtool">GitHub</a></li></ul>
+  <a class="cta" href="#early-access">Get early access →</a>
+</nav>
+<main id="main">
+
+<section>
+  <div class="hero">
+    <div>
+      <div class="eyebrow">JT.0S1 · semantic coreutils</div>
+      <h1>grep, sort, lint, tail. With judgment.</h1>
+      <p class="lede">Unix tools that understand what you mean. Each one asks Jev a typed question, gets back a probability, and lets your shell decide. 150 ms a call. Cheap enough to run on every line.</p>
+      <p><code class="inl">npm i -g jevtool</code></p>
+      <p class="preview-note">Preview · tools in development. Commands and results are illustrative.</p>
+    </div>
+    <div class="win">
+      <div class="bar"><span>Terminal 1.1</span><span>jevgrep</span></div>
+<pre class="term" tabindex="0" role="region" aria-label="Example terminal output"><span class="p">$</span> jevgrep "functions that swallow errors silently" src/
+<span class="dim">scanning 312 functions · 1 request · 0.19s</span>
+<span class="hit">src/proxy/relay/upstream.ts:97</span>   handleRetry()      <span class="pr">0.94</span>
+<span class="hit">src/server/billing/settle.ts:41</span>  reconcileOrder()   <span class="pr">0.88</span>
+<span class="hit">src/workers/sync.ts:120</span>          pullCatalog()      <span class="pr">0.71</span>
+<span class="dim">3 matches ≥ 0.70 · 9 below threshold (--all to show)</span>
+
+<span class="p">$</span> git diff | jevlint --rule "user-facing errors say cause + action"
+<span class="hit">apps/web/chat.tsx:212</span>  "Request failed"   <span class="pr">0.91 violates</span>
+<span class="dim">exit 1</span></pre>
+    </div>
+  </div>
+</section>
+
+<section id="tools" aria-labelledby="tools-title">
+  <div class="eyebrow">The toolbox</div>
+  <h2 id="tools-title">One key. Six tools. Same shape.</h2>
+  <p class="lede" style="margin-bottom:22px">Every tool sends state plus one narrow question and reads a number back. Nothing is generated. The rule stays in your code.</p>
+  <div class="tools">
+    <div class="win tool"><div class="bar"><span>jevgrep</span><span>v0.1</span></div><div class="body"><div class="name">jevgrep</div><span class="prim">Choice</span><p>Search code, logs or docs by meaning. Candidates are parsed by tree-sitter; Jev selects.</p></div></div>
+    <div class="win tool"><div class="bar"><span>jevlint</span><span>v0.1</span></div><div class="body"><div class="name">jevlint</div><span class="prim">Noul</span><p>A CI gate for rules that aren't regexes. Commit message honest? Error copy actionable? PR matches diff?</p></div></div>
+    <div class="win tool"><div class="bar"><span>jevtail</span><span>v0.1</span></div><div class="body"><div class="name">jevtail</div><span class="prim">Score</span><p>Pipe logs in. Severity and urgency out. Same-cause lines collapse. Alert only on what changed.</p></div></div>
+    <div class="win tool"><div class="bar"><span>jevsort</span><span>v0.1</span></div><div class="body"><div class="name">jevsort</div><span class="prim">Score</span><p>Sort anything by a described dimension. <code class="inl">jevsort --by urgency todo.md</code></p></div></div>
+    <div class="win tool"><div class="bar"><span>jevdiff</span><span>v0.1</span></div><div class="body"><div class="name">jevdiff</div><span class="prim">Noul</span><p>Did the meaning change, or just the words? For prompts, copy, contracts, docs.</p></div></div>
+    <div class="win tool"><div class="bar"><span>jev-mcp</span><span>v0.1</span></div><div class="body"><div class="name">jev-mcp</div><span class="prim">all</span><p>A <code class="inl">judge</code> tool for Claude Code and Cursor. Your agent asks a typed question instead of guessing.</p></div></div>
+  </div>
+</section>
+
+<section>
+  <div class="cols">
+    <div><h3>Not a chatbot</h3><p>No prose to parse, no JSON mode to coax. A Noul is a probability. A Choice is one of your options. A Score is a position on a scale you wrote.</p></div>
+    <div><h3>Runs in CI</h3><p>Deterministic enough to gate a merge, cheap enough to run on every push. Thresholds live in your repo, not in a prompt.</p></div>
+    <div><h3>Numbers, not vibes</h3><p>Every answer carries calibrated confidence. Act above your threshold, escalate below it, log everything in between.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">jev.cost</div>
+  <div class="nums">
+    <div class="num"><div class="v">150ms</div><div class="k">per judgment</div><div class="d">fast enough for a keystroke</div></div>
+    <div class="num"><div class="v">$42</div><div class="k">per billion input tokens</div><div class="d">output is free</div></div>
+    <div class="num"><div class="v">0</div><div class="k">lines of output to parse</div><div class="d">typed answers only</div></div>
+    <div class="num"><div class="v">1</div><div class="k">request per file</div><div class="d">questions fan out in parallel</div></div>
+  </div>
+</section>
+
+<section id="playground" aria-labelledby="playground-title">
+  <div class="eyebrow">Playground</div>
+  <h2 id="playground-title">Ask one narrow question.</h2>
+  <div class="win" style="margin-top:18px">
+    <div class="bar"><span>Playground 1.1</span><span id="pg-model">jev-latest</span></div>
+    <div class="play">
+      <div>
+        <div class="chips" role="group" aria-label="Examples">
+          <button class="chip" id="ex-0" aria-pressed="true">support ticket · urgency</button>
+          <button class="chip" id="ex-1" aria-pressed="false">commit vs diff · honest?</button>
+          <button class="chip" id="ex-2" aria-pressed="false">request · which model</button>
+        </div>
+        <pre class="json" id="pg-req"></pre>
+      </div>
+      <div>
+        <div class="eyebrow">answer</div>
+        <div class="bars" id="pg-ans"></div>
+        <div class="meta" id="pg-meta"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="docs" aria-label="Configuration preview">
+  <div class="win">
+    <div class="bar"><span>Config 1.1</span><span>~/.jevtool.toml</span></div>
+    <div class="body baseurl">
+      <div>
+        <h3>Bring your own key, or route through Jevrouter.</h3>
+        <p style="margin:0">Every tool reads one base URL. Point it at TypeSafe directly, or at <code class="inl">api.jevrouter.io</code> for metered credits, project budgets and Jev-assisted model routing on the same account.</p>
+      </div>
+      <pre class="json" style="min-width:240px">base_url = "https://api.jevrouter.io/v1"
+api_key  = "jr_…"
+model    = "jev-latest"
+threshold = 0.70</pre>
+    </div>
+  </div>
+</section>
+
+<section id="early-access" aria-labelledby="signup-title">
+  <div class="win signup">
+    <div class="bar"><span>Early access</span><span>jevtool.dev</span></div>
+    <div class="body">
+      <h2 id="signup-title">Get early access.</h2>
+      <p>Be first to know when the tools are ready.</p>
+      <form id="subscribe-form" action="/api/subscribe" method="post">
+        <label for="email">Email address</label>
+        <div class="signup-row">
+          <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required aria-describedby="signup-note">
+          <button type="submit">Get early access →</button>
+        </div>
+        <div class="honeypot" aria-hidden="true"><label for="website">Leave this field empty</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+        <p class="note" id="signup-note">Your email is used only for jevtool launch updates.</p>
+        <p id="subscribe-status" class="form-status" role="status" aria-live="polite"></p>
+        <noscript><p class="note">Submitting will open a confirmation page.</p></noscript>
+      </form>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <span>jevtool.dev · © 2026 jevtool</span>
+  <span>Runs on Jev by TypeSafe. Not affiliated.</span>
+</footer>
+</div>
+
+<script>
+(function(){
+  var EX=[
+    {req:{state:{ticket:{subject:"Card charged twice, no order",body:"I was charged $49 twice and the order page says nothing was placed. Need this fixed before my flight tomorrow."}},questions:[{id:"urgency",type:"score",instructions:"How urgent is `ticket` for the support team?",criteria:["can wait a week","this week","today","within the hour"]}]},
+     ans:[["within the hour",.62],["today",.31],["this week",.06],["can wait a week",.01]],meta:"score · confidence 0.62 · 0.13s · 214 input tokens"},
+    {req:{state:{commit:"fix: minor typo in README",diff:"+ if (retries > 3) return null; // was: throw\n- throw new UpstreamError(res)"},questions:[{id:"honest",type:"noul",instructions:"Does `commit` accurately describe `diff`?"}]},
+     ans:[["yes",.04],["no",.96]],meta:"noul · p(yes)=0.04 · 0.11s · 88 input tokens"},
+    {req:{state:{request:"Translate this 2-line product blurb to Japanese, keep the brand name."},questions:[{id:"route",type:"choice",instructions:"Cheapest model class that will do `request` well.",criteria:["small fast model","mid model","frontier reasoning model"]}]},
+     ans:[["small fast model",.81],["mid model",.17],["frontier reasoning model",.02]],meta:"choice · confidence 0.81 · 0.09s · 61 input tokens"}
+  ];
+  var req=document.getElementById("pg-req"),ans=document.getElementById("pg-ans"),meta=document.getElementById("pg-meta");
+  function render(i){
+    req.textContent=JSON.stringify(EX[i].req,null,2);
+    ans.innerHTML="";
+    EX[i].ans.forEach(function(a){
+      var row=document.createElement("div");row.className="barrow";
+      row.innerHTML='<div class="lbl"><span>'+a[0]+'</span><span>'+a[1].toFixed(2)+'</span></div><div class="trk"><div class="fil" style="width:0"></div></div>';
+      ans.appendChild(row);
+      requestAnimationFrame(function(){row.querySelector(".fil").style.width=(a[1]*100)+"%";});
+    });
+    meta.textContent=EX[i].meta+" · example response, not live";
+    for(var k=0;k<3;k++){document.getElementById("ex-"+k).setAttribute("aria-pressed",k===i?"true":"false");}
+  }
+  for(var k=0;k<3;k++)(function(k){document.getElementById("ex-"+k).addEventListener("click",function(){render(k);});})(k);
+  render(0);
+})();
+</script>
+
+<script>
+(function(){
+  var form=document.getElementById('subscribe-form');
+  var status=document.getElementById('subscribe-status');
+  var button=form.querySelector('button');
+  form.addEventListener('submit',async function(event){
+    event.preventDefault();
+    if(button.disabled)return;
+    button.disabled=true;
+    button.textContent='Joining…';
+    status.textContent='';
+    var controller=new AbortController();
+    var timeout=setTimeout(function(){controller.abort();},15000);
+    try{
+      var response=await fetch(form.action,{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Accept':'application/json'},
+        body:JSON.stringify({email:form.elements.email.value,website:form.elements.website.value}),
+        signal:controller.signal
+      });
+      var data=await response.json();
+      if(!response.ok)throw new Error(data.error||'Could not save your email. Please try again.');
+      status.textContent="You're on the list. We'll let you know when jevtool is ready.";
+      form.reset();
+    }catch(error){
+      status.textContent=error.name==='AbortError'?'The request timed out. Please try again.':(error instanceof TypeError?'Could not connect. Check your connection and try again.':error.message);
+    }finally{
+      clearTimeout(timeout);
+      button.disabled=false;
+      button.textContent='Get early access →';
+    }
+  });
+})();
+</script>
+</body>
+</html>

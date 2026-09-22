@@ -1,0 +1,7 @@
+.DS_Store
+.wrangler/
+.deploy/
+node_modules/
+.env*
+.dev.vars*
+wrangler.local.jsonc

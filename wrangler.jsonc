@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jevtool-site",
+  "pages_build_output_dir": ".deploy",
+  "compatibility_date": "2026-09-21",
+  "kv_namespaces": [
+    {
+      "binding": "SUBSCRIBERS",
+      "id": "dc83f9a96dce4d8c809b207d45cebfb8"
+    }
+  ]
+}
