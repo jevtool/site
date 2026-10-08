@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install &amp; use Jevtool CLI</title>
+<meta name="description" content="Install the Jevtool preview, check agent deliveries against an acceptance checklist, and filter JSONL records by meaning.">
+<link rel="canonical" href="https://jevtool.dev/docs.html">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#f386a1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700&family=Fragment+Mono&display=swap">
+<style>
+:root{--pink:#f386a1;--ink:#1e1e1e;--paper:#fefefe;--sans:"Host Grotesk","Helvetica Neue",Arial,sans-serif;--mono:"Fragment Mono",Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--pink);color:var(--ink);font:16px/1.65 var(--sans);padding:0 20px 60px}a{color:inherit;text-underline-offset:3px}
+.wrap{max-width:900px;margin:auto}nav{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;border-bottom:1px solid var(--ink);padding:16px 0}nav a{text-decoration:none}nav a:hover{text-decoration:underline}
+header{padding:40px 0 24px}h1{font-size:clamp(36px,6vw,64px);line-height:1.05;font-weight:500;letter-spacing:-.03em;margin:0 0 18px}h2{font-size:28px;line-height:1.2;font-weight:500;margin:0 0 16px}h3{font-size:18px;margin:24px 0 8px}p{margin:0 0 14px;max-width:72ch}
+article{background:var(--paper);border:1px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:clamp(18px,4vw,36px)}section+section{border-top:1px solid #ddd;margin-top:32px;padding-top:32px}section{scroll-margin-top:24px}
+pre{background:#f6f6f6;border:1px solid #ddd;padding:16px;overflow-x:auto;font:13px/1.6 var(--mono);max-width:100%}code{font-family:var(--mono);font-size:.88em}pre code{font-size:inherit}.download{display:inline-block;border:1px solid var(--ink);padding:10px 15px;background:var(--ink);color:var(--paper);text-decoration:none;margin:8px 0 16px}
+ul,ol{padding-left:24px}li{margin:8px 0}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #ddd;vertical-align:top}th:first-child,td:first-child{padding-left:0}footer{border-top:1px solid var(--ink);margin-top:32px;padding-top:16px;font:12px var(--mono)}a:focus-visible,pre:focus-visible{outline:3px solid var(--ink);outline-offset:4px}.skip{position:absolute;top:8px;left:16px;background:var(--ink);color:var(--paper);padding:8px 12px;transform:translateY(-180%)}.skip:focus{transform:none}
+@media(max-width:480px){body{padding-inline:16px}header{padding-top:28px}article{padding:18px}pre{padding:12px;font-size:12px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+<nav aria-label="Documentation navigation"><a href="/">jevtool.dev</a><a href="#verify">Delivery checks</a><a href="#grep">Semantic filter</a></nav>
+<header><h1>From download<br>to your first check.</h1><p>Two tools, one CLI. Start with a local demo, then bring your own checklist and TypeSafe key.</p></header>
+<main id="main"><article>
+<section id="install">
+<h2>Install the preview</h2>
+<p>You need Node.js 20+ and Git. The archive includes the MIT-licensed source. This preview is not yet available on the npm registry.</p>
+<a class="download" href="/downloads/jevtool-cli-0.1.0.tgz" download>Download CLI archive →</a>
+<p>Open a terminal in the folder where you downloaded the archive:</p>
+<pre tabindex="0"><code>npm install -g ./jevtool-cli-0.1.0.tgz
+jevtool --help
+jevtool demo</code></pre>
+<p>The demo creates a temporary Git repository and runs a real failing login test. It finds a missing regression test and an unexpected CSS change, then removes the temporary repository. No API key or network request is involved.</p>
+</section>
+<section id="verify">
+<h2>Check an agent delivery</h2>
+<ol><li>Open your project's Git repository. It must have at least one commit.</li><li>Create a checklist, then edit its requirements, paths and test commands.</li><li>Run the checks after your agent finishes the task.</li></ol>
+<pre tabindex="0"><code>jevtool init --task "Reject blank passwords without changing styles"
+# Edit .jevtool/acceptance.json
+jevtool verify
+jevtool verify --run-tests</code></pre>
+<p>Download an <a href="/examples/acceptance.json">example acceptance file</a> and adapt its paths to your project. A requirement can ask for semantic evidence, expected file changes, unchanged paths or successful tests.</p>
+<h3>Add Jev judgments</h3>
+<p>Set <code>TYPESAFE_API_KEY</code> in your environment using a key from <a href="https://console.typesafe.ai/">TypeSafe</a>, then run:</p>
+<pre tabindex="0"><code>jevtool verify --run-tests --judge
+jevtool verify --run-tests --judge --json --output .jevtool/report.json</code></pre>
+<p><code>--run-tests</code> executes the commands you configured. <code>--judge</code> sends your task, selected diff excerpts and linked test output to TypeSafe. Common credentials are redacted, but this is not a comprehensive secret scanner. Local checks make no model request.</p>
+<p>Tests must be freshly executed. A failing linked test overrides model approval. Missing evidence and unavailable judgments stay open for review. The report applies to the recorded code snapshot.</p>
+<h3>Checking committed changes</h3>
+<p>The default base is <code>HEAD</code>, so it checks your current uncommitted delivery. For a committed PR, supply its base commit:</p>
+<pre tabindex="0"><code>jevtool verify --base &lt;base-commit-sha&gt; --run-tests --judge --json</code></pre>
+</section>
+<section id="grep">
+<h2>Filter records by meaning</h2>
+<p>Download the <a href="/examples/payments.jsonl">sample payment events</a>, set <code>TYPESAFE_API_KEY</code>, and try:</p>
+<pre tabindex="0"><code>jevtool grep "Payment succeeded but membership was not activated" payments.jsonl --format jsonl
+
+cat events.jsonl | jevtool grep "Customer requests a refund" --format jsonl --json</code></pre>
+<p>The filter sends each supplied record to TypeSafe. Results retain the original text and line numbers. Uncertain records appear separately for review. Text and JSONL are supported; multiline CSV and directory scanning are not included.</p>
+<p>Start small: up to 1000 records per run, 2000 characters per record. Prefilter large logs by time and fields before using semantic checks.</p>
+</section>
+<section id="results">
+<h2>Read the result</h2>
+<div class="table-wrap"><table><thead><tr><th>Exit</th><th>Delivery check</th><th>Semantic filter</th></tr></thead><tbody>
+<tr><td><code>0</code></td><td>All checks supported</td><td>Matches found, no uncertain records</td></tr>
+<tr><td><code>1</code></td><td>A check failed</td><td>No matches</td></tr>
+<tr><td><code>2</code></td><td>Review required</td><td>Uncertain records need review</td></tr>
+<tr><td><code>3</code></td><td>Configuration or operational error</td><td>Configuration or operational error</td></tr>
+</tbody></table></div>
+<p style="margin-top:16px">A supported check describes evidence support, not a guarantee of code correctness. Initial thresholds need testing on your own examples. Start with advisory checks before making them a CI gate.</p>
+<p>This release provides a local CLI, not an automatically installed agent hook. Hosted accounts, team dashboards and subscriptions are future work. Live model accuracy has not yet been evaluated for this preview.</p>
+<p><a href="/cli-readme.md">Full CLI reference</a> · <a href="/downloads/SHA256SUMS.txt">Archive checksum</a></p>
+</section>
+</article></main>
+<footer>Runs on Jev by TypeSafe. Not affiliated with TypeSafe AI.</footer>
+</div>
+</body>
+</html>
