@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>jevtool — Check agent deliveries</title>
-<meta name="description" content="Check agent deliveries against your checklist, Git changes and real tests. Try the CLI demo and filter logs by meaning with Jev.">
+<title>jevtool — Test Jev judgments before you ship</title>
+<meta name="description" content="Run your labeled cases through Jev, TypeSafe's System One model. Get accuracy, misses, a safe confidence cutoff and version diffs. Plus Claude Code plugins that use Jev.">
 <link rel="canonical" href="https://jevtool.dev/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="jevtool — Check agent deliveries">
-<meta property="og:description" content="An acceptance checklist, Git evidence and real test results. Two tools for your development workflow.">
+<meta property="og:title" content="jevtool — Test Jev judgments before you ship">
+<meta property="og:description" content="Accuracy, misses, a safe confidence cutoff and version diffs for every Jev judgment. Open-source CLI and Claude Code plugins.">
 <meta property="og:url" content="https://jevtool.dev/">
 <meta property="og:site_name" content="jevtool">
 <meta name="theme-color" content="#f386a1">
@@ -124,6 +124,15 @@ a:focus-visible,button:focus-visible,input:focus-visible,pre:focus-visible{outli
   .signup .body{padding:18px}
   .signup-row{flex-direction:column}
 }
+.results{width:100%;border-collapse:collapse;font-size:14px;background:var(--paper)}
+.results th,.results td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.results th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:400;background:#f6f6f6}
+.results td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+.results code{font-family:var(--mono);font-size:12px}
+.tablewrap{overflow-x:auto;border:1px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.cmd{font-family:var(--mono);font-size:13px;background:var(--paper);border:1px solid var(--ink);padding:8px 12px;display:inline-block;max-width:100%;overflow-x:auto;white-space:nowrap}
+.fine{font-size:13px;color:var(--mute);margin-top:12px;max-width:80ch}
+@media(max-width:600px){.results .opt{display:none}}
 </style>
 </head>
 <body>
@@ -132,68 +141,88 @@ a:focus-visible,button:focus-visible,input:focus-visible,pre:focus-visible{outli
 <div class="wrap">
 <nav aria-label="Main navigation">
   <div class="brand">jevtool.dev</div>
-  <ul><li><a href="#tools">Tools</a></li><li><a href="#playground">Playground</a></li><li><a href="#docs">Docs</a></li><li><a href="https://github.com/jevtool">GitHub</a></li></ul>
-  <a class="cta" href="#early-access">Get early access →</a>
+  <ul><li><a href="#results">Results</a></li><li><a href="#tools">Tools</a></li><li><a href="#plugins">Plugins</a></li><li><a href="/docs.html">Docs</a></li><li><a href="https://github.com/jevtool/jevtool">GitHub</a></li></ul>
+  <a class="cta" href="/docs.html">Install →</a>
 </nav>
 <main id="main">
 
 <section>
   <div class="hero">
     <div>
-      <div class="eyebrow">Tools for developers and their agents</div>
-      <h1>Check the work.</h1>
-      <p class="lede">Check agent deliveries against your checklist, Git changes and real test results. Filter logs by meaning with the same CLI.</p>
-      <div class="hero-actions"><a href="/downloads/jevtool-cli-0.1.0.tgz" download>Download CLI →</a><a href="/docs.html">Installation &amp; guide</a></div>
-      <p class="preview-note">Local preview · Node.js 20+ and Git. Try the demo without an API key. Not yet published to npm.</p>
+      <div class="eyebrow">Tools for Jev, TypeSafe's System One model</div>
+      <h1>Test the judgment.</h1>
+      <p class="lede">Jev answers a yes/no, choice or score question in about 300&nbsp;ms for a fraction of a cent. jevtool tells you whether those answers are right for <em>your</em> data: accuracy, the cases it misses, a confidence cutoff that is safe to automate at, and what changes on the next Jev version.</p>
+      <div class="hero-actions"><a href="/docs.html">Get started →</a><a href="#plugins">Claude Code plugins</a></div>
+      <p class="preview-note"><span class="cmd">npx jevtool eval example:support-triage</span></p>
+      <p class="preview-note">Open source, MIT, zero dependencies. Bring your own TypeSafe key.</p>
     </div>
     <div class="win">
-      <div class="bar"><span>Built-in demo</span><span>jevtool verify</span></div>
-<pre class="term" tabindex="0" role="region" aria-label="Built-in demo result"><span class="p">$</span> jevtool demo
-<span class="dim">real test execution · no model request</span>
+      <div class="bar"><span>Terminal</span><span>jevtool eval</span></div>
+<pre class="term" tabindex="0" role="region" aria-label="Example eval output"><span class="p">$</span> jevtool eval example:support-triage --compare jev-1.14.0
+<span class="dim">27 cases · PASSED</span>
 
-jevtool verify · FAILED
+jev-1.13.0
+  category  choice  <span class="hit">96%</span> (26/27)  [en 95% · zh 100%]
+  escalate  noul   <span class="hit">100%</span> (27/27)
+  <span class="dim">p50 272 ms · 553 tokens/call · ~$0.023 per 1k</span>
+  misses:
+    s12 category: got <span class="pr">refund</span>, expected bug|billing
+        <span class="dim">(certainty 0.96)</span>
 
-[FAILED] Reject whitespace-only passwords.
-  linked_test_failed
-  <span class="pr">src/login.cjs</span> · login test: exit 1
+jev-1.14.0
+  category  choice  <span class="hit">96%</span> (26/27)
+  escalate  noul   <span class="hit">100%</span> (27/27)
 
-[FAILED] Add a regression test file.
-  expected_changes_missing
-
-[FAILED] Keep CSS files unchanged.
-  protected_paths_changed
-  <span class="pr">src/style.css</span>
-
-<span class="dim">Incomplete delivery. Three checks to resolve.</span></pre>
+<span class="dim">jev-1.13.0 → jev-1.14.0: no answers changed</span></pre>
     </div>
   </div>
+</section>
+
+<section id="results" aria-labelledby="results-title">
+  <div class="eyebrow">Measured, not claimed</div>
+  <h2 id="results-title">Ten judgments, run live.</h2>
+  <p class="lede" style="margin-bottom:22px">Every suite ships with the CLI. Accuracy pools every question in the suite. "Automated at 95%" is the share of cases above the confidence cutoff where the automated answers stay at least 95% correct; the rest go to a person or a bigger model.</p>
+  <div class="tablewrap">
+    <table class="results">
+      <thead><tr><th>Domain</th><th>Suite</th><th>Cases</th><th>Accuracy</th><th>Automated at 95%</th></tr></thead>
+      <tbody>
+      <tr><td>Customer support</td><td><code>support-triage</code><br><span class="opt">Route emails to cancel, refund, billing, bug or how-to; flag chargeback threats</span></td><td class="n">27</td><td class="n">98%</td><td class="n">100%</td></tr>
+      <tr><td>Chatbots</td><td><code>chat-inbound-guard</code><br><span class="opt">Prompt injection, spam, and whether a message needs a reply</span></td><td class="n">21</td><td class="n">90%</td><td class="n">76%</td></tr>
+      <tr><td>LLM apps</td><td><code>model-routing</code><br><span class="opt">Small, mid or frontier model for this request</span></td><td class="n">19</td><td class="n">100%</td><td class="n">100%</td></tr>
+      <tr><td>AI answers</td><td><code>rag-fact-check</code><br><span class="opt">Source supports, contradicts or never mentions a claim</span></td><td class="n">16</td><td class="n">94%</td><td class="n">88%</td></tr>
+      <tr><td>Data</td><td><code>entity-match</code><br><span class="opt">Two messy records: same company, person or product?</span></td><td class="n">14</td><td class="n">100%</td><td class="n">100%</td></tr>
+      <tr><td>E-commerce</td><td><code>review-moderation</code><br><span class="opt">Publish, hide or escalate a product review</span></td><td class="n">14</td><td class="n">100%</td><td class="n">100%</td></tr>
+      <tr><td>Personal</td><td><code>inbox-triage</code><br><span class="opt">Action, security alert, receipt, FYI, newsletter or spam</span></td><td class="n">14</td><td class="n">93%</td><td class="n">93%</td></tr>
+      <tr><td>Sales</td><td><code>lead-routing</code><br><span class="opt">Sales call, self-serve, nurture or disqualify</span></td><td class="n">12</td><td class="n">92%</td><td class="n">75%</td></tr>
+      <tr><td>Legal</td><td><code>contract-risk</code><br><span class="opt">Auto-renewal, uncapped liability, one-sided changes</span></td><td class="n">12</td><td class="n">97%</td><td class="n">92%</td></tr>
+      <tr><td>Engineering</td><td><code>code-review-lint</code><br><span class="opt">Swallowed errors, logged secrets, misleading commits</span></td><td class="n">12</td><td class="n">97%</td><td class="n">92%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="fine">jev-1.13.0, run 2026-10-19 with <code>jevtool eval</code>. Median latency 270–770&nbsp;ms per case; about $0.02 per thousand calls at list price. Cases and labels are hand-written smoke tests of 12–27 cases each, not benchmarks. Automated share is the lowest across a suite's questions. Run any of them yourself: <code>npx jevtool eval example:NAME</code>, then swap in your own data.</p>
 </section>
 
 <section id="tools" aria-labelledby="tools-title">
-  <div class="eyebrow">The toolbox</div>
-  <h2 id="tools-title">Two tools to start.</h2>
-  <p class="lede" style="margin-bottom:22px">A checklist for the work. A semantic filter for the records. Install one CLI and keep both in your shell.</p>
+  <div class="eyebrow">The CLI</div>
+  <h2 id="tools-title">One CLI, three jobs.</h2>
+  <p class="lede" style="margin-bottom:22px"><span class="cmd">npm install -g jevtool</span></p>
   <div class="tools">
-    <div class="win tool"><div class="bar"><span>Delivery checks</span><span>local preview</span></div><div class="body"><div class="name">jevtool verify</div><span class="prim">rules + Noul</span><p>Read the checklist, collect the diff and run linked tests. Keep unsupported completion claims visible.</p><a href="/docs.html#verify">Set up a checklist →</a></div></div>
-    <div class="win tool"><div class="bar"><span>Semantic filter</span><span>API key required</span></div><div class="body"><div class="name">jevtool grep</div><span class="prim">Noul</span><p>Find records such as “payment succeeded but membership is missing.” Get original text, line numbers and uncertain cases.</p><a href="/docs.html#grep">Filter your first file →</a></div></div>
+    <div class="win tool"><div class="bar"><span>Evaluate</span><span>choice · noul · score</span></div><div class="body"><div class="name">jevtool eval</div><span class="prim">your labels vs Jev</span><p>Accuracy per question and per tag, every miss, a suggested confidence cutoff, option-order checks, and which answers flip between Jev versions. Gate CI with <code class="inl">--min-accuracy</code>.</p><a href="/docs.html#eval">Write your first suite →</a></div></div>
+    <div class="win tool"><div class="bar"><span>Delivery checks</span><span>rules + Noul</span></div><div class="body"><div class="name">jevtool verify</div><span class="prim">agent deliveries</span><p>Check an agent's work against your checklist, the Git diff and freshly executed tests. A failing linked test always overrides the model.</p><a href="/docs.html#verify">Set up a checklist →</a></div></div>
+    <div class="win tool"><div class="bar"><span>Semantic filter</span><span>Noul</span></div><div class="body"><div class="name">jevtool grep</div><span class="prim">logs and records</span><p>Find records such as “payment succeeded but membership is missing.” Original text, line numbers, uncertain cases kept for review.</p><a href="/docs.html#grep">Filter your first file →</a></div></div>
   </div>
 </section>
 
-<section>
-  <div class="cols">
-    <div><h3>Actual test evidence</h3><p>Test results come from executed commands. A model answer cannot override a failing linked test.</p></div>
-    <div><h3>Review stays visible</h3><p>Missing evidence, uncertain judgments and provider errors stay open for review. Start with advisory checks.</p></div>
-    <div><h3>Your checklist, your project</h3><p>Keep requirements and test commands in Git. Export a JSON report tied to the snapshot you checked.</p></div>
-  </div>
-</section>
-
-<section>
-  <div class="eyebrow">Inside the preview</div>
-  <div class="nums">
-    <div class="num"><div class="v">2</div><div class="k">tools</div><div class="d">verify and grep</div></div>
-    <div class="num"><div class="v">0</div><div class="k">runtime dependencies</div><div class="d">Node.js and Git are required</div></div>
-    <div class="num"><div class="v">3</div><div class="k">verification states</div><div class="d">supported, failed, review</div></div>
-    <div class="num"><div class="v">MIT</div><div class="k">source license</div><div class="d">source included in the archive</div></div>
+<section id="plugins" aria-labelledby="plugins-title">
+  <div class="eyebrow">Plugin marketplace</div>
+  <h2 id="plugins-title">Jev inside Claude Code.</h2>
+  <p class="lede" style="margin-bottom:16px">Add the marketplace once, then install what you need.</p>
+  <pre class="json" style="margin-bottom:22px">claude plugin marketplace add jevtool/claude-plugins
+claude plugin install jev-guard@jevtool</pre>
+  <div class="tools">
+    <div class="win tool"><div class="bar"><span>Hook</span><span>PreToolUse</span></div><div class="body"><div class="name">jev-guard</div><span class="prim">5 questions · ~0.4 s</span><p>Before Claude runs a command, writes a file or fetches a URL, Jev scores destructive, out-of-workspace, exfiltration, fit-to-task and severity. Blocks or asks. Never auto-approves, so your permission rules still apply.</p><a href="https://github.com/jevtool/claude-plugins/tree/main/plugins/jev-guard">How it decides →</a></div></div>
+    <div class="win tool"><div class="bar"><span>Skill</span><span>jevtool eval</span></div><div class="body"><div class="name">jev-eval</div><span class="prim">build · run · fix</span><p>Claude turns your data into a labeled suite, runs it, reads the misses and tightens the question, then re-runs to make sure nothing regressed.</p><a href="https://github.com/jevtool/claude-plugins/tree/main/plugins/jev-eval">Read the skill →</a></div></div>
+    <div class="win tool"><div class="bar"><span>Skill</span><span>jevtool verify</span></div><div class="body"><div class="name">jev-verify</div><span class="prim">done means done</span><p>Before saying a task is finished, Claude checks the checklist, the diff and freshly run tests, and reports what still needs a look.</p><a href="https://github.com/jevtool/claude-plugins/tree/main/plugins/jev-verify">Read the skill →</a></div></div>
   </div>
 </section>
 
@@ -201,7 +230,7 @@ jevtool verify · FAILED
   <div class="eyebrow">Playground</div>
   <h2 id="playground-title">Ask one narrow question.</h2>
   <div class="win" style="margin-top:18px">
-    <div class="bar"><span>Playground 1.1</span><span id="pg-model">jev-latest</span></div>
+    <div class="bar"><span>Playground 1.2</span><span id="pg-model">jev-1.13.0</span></div>
     <div class="play">
       <div>
         <div class="chips" role="group" aria-label="Examples">
@@ -220,42 +249,20 @@ jevtool verify · FAILED
   </div>
 </section>
 
-<section id="docs" aria-label="Install and run the CLI">
-  <div class="win">
-    <div class="bar"><span>Install &amp; run</span><span>local preview</span></div>
-    <div class="body baseurl">
-      <div>
-        <h3>Start with the demo. Then check a real delivery.</h3>
-        <p>Download the archive and install it locally. The demo runs without a key; semantic checks use your TypeSafe key.</p>
-        <p><a href="/docs.html">Read the installation guide →</a></p>
-      </div>
-      <pre class="json" style="min-width:240px">npm install -g ./jevtool-cli-0.1.0.tgz
-jevtool demo
-
-# In your project
-jevtool init --task "Fix login failures"
-# Edit .jevtool/acceptance.json
-jevtool verify --run-tests
-# With TYPESAFE_API_KEY set
-jevtool verify --run-tests --judge</pre>
-    </div>
-  </div>
-</section>
-
 <section id="early-access" aria-labelledby="signup-title">
   <div class="win signup">
-    <div class="bar"><span>Early access</span><span>jevtool.dev</span></div>
+    <div class="bar"><span>Updates</span><span>jevtool.dev</span></div>
     <div class="body">
-      <h2 id="signup-title">Get early access.</h2>
-      <p>Be first to know when the tools are ready.</p>
+      <h2 id="signup-title">Get new suites and plugins.</h2>
+      <p>One short email when a new tool, plugin or Jev version comparison ships.</p>
       <form id="subscribe-form" action="/api/subscribe" method="post">
         <label for="email">Email address</label>
         <div class="signup-row">
           <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com" maxlength="254" required aria-describedby="signup-note">
-          <button type="submit">Get early access →</button>
+          <button type="submit">Subscribe →</button>
         </div>
         <div class="honeypot" aria-hidden="true"><label for="website">Leave this field empty</label><input id="website" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-        <p class="note" id="signup-note">Your email is used only for jevtool launch updates.</p>
+        <p class="note" id="signup-note">Your email is used only for jevtool updates.</p>
         <p id="subscribe-status" class="form-status" role="status" aria-live="polite"></p>
         <noscript><p class="note">Submitting will open a confirmation page.</p></noscript>
       </form>
@@ -274,11 +281,11 @@ jevtool verify --run-tests --judge</pre>
 (function(){
   var EX=[
     {req:{model:"jev-1.13.0",state:{ticket:{subject:"Card charged twice, no order",body:"I was charged $49 twice and the order page says nothing was placed. Need this fixed before my flight tomorrow."}},questions:{urgency:{type:"score",instructions:"How urgent is `ticket` for the support team?",criteria:["can wait a week","this week","today","within the hour"]}}},
-     ans:[["within the hour",.62],["today",.31],["this week",.06],["can wait a week",.01]],meta:"score · fixture confidence 0.62"},
+     ans:[["today",.58],["within the hour",.42],["this week",0],["can wait a week",0]],meta:"score 2.42 of 3 · confidence 0.58 · 709 ms"},
     {req:{model:"jev-1.13.0",state:{commit:"fix: minor typo in README",diff:"+ if (retries > 3) return null; // was: throw\n- throw new UpstreamError(res)"},questions:{honest:{type:"noul",instructions:"Does `commit` accurately describe `diff`?"}}},
-     ans:[["yes",.04],["no",.96]],meta:"noul · fixture p(yes)=0.04"},
+     ans:[["yes",.08],["no",.92]],meta:"noul p(yes)=0.08 · 253 ms"},
     {req:{model:"jev-1.13.0",state:{request:"Translate this 2-line product blurb to Japanese, keep the brand name."},questions:{route:{type:"choice",instructions:"Which model class is appropriate for `request`?",criteria:{small:"Short, routine transformations",mid:"Work needing several constraints handled together",frontier:"Complex reasoning or difficult ambiguity"}}}},
-     ans:[["small fast model",.81],["mid model",.17],["frontier reasoning model",.02]],meta:"choice · fixture confidence 0.81"}
+     ans:[["small",1],["mid",0],["frontier",0]],meta:"choice · confidence 1.00 · 283 ms"}
   ];
   var req=document.getElementById("pg-req"),ans=document.getElementById("pg-ans"),meta=document.getElementById("pg-meta");
   function render(i){
@@ -290,7 +297,7 @@ jevtool verify --run-tests --judge</pre>
       ans.appendChild(row);
       requestAnimationFrame(function(){row.querySelector(".fil").style.width=(a[1]*100)+"%";});
     });
-    meta.textContent=EX[i].meta+" · example response, not live";
+    meta.textContent=EX[i].meta+" · recorded live from jev-1.13.0 on 2026-10-19";
     for(var k=0;k<3;k++){document.getElementById("ex-"+k).setAttribute("aria-pressed",k===i?"true":"false");}
   }
   for(var k=0;k<3;k++)(function(k){document.getElementById("ex-"+k).addEventListener("click",function(){render(k);});})(k);
@@ -320,14 +327,14 @@ jevtool verify --run-tests --judge</pre>
       });
       var data=await response.json();
       if(!response.ok)throw new Error(data.error||'Could not save your email. Please try again.');
-      status.textContent="You're on the list. We'll let you know when jevtool is ready.";
+      status.textContent="You're subscribed. We'll email you when something new ships.";
       form.reset();
     }catch(error){
       status.textContent=error.name==='AbortError'?'The request timed out. Please try again.':(error instanceof TypeError?'Could not connect. Check your connection and try again.':error.message);
     }finally{
       clearTimeout(timeout);
       button.disabled=false;
-      button.textContent='Get early access →';
+      button.textContent='Subscribe →';
     }
   });
 })();

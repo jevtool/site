@@ -15,7 +15,7 @@ Open http://localhost:8788. The local `SUBSCRIBERS` KV persists under the ignore
 
 ## Cloudflare deployment
 
-Project: `jevtool-site`. Production branch: `main`. Public URL: https://jevtool-site.pages.dev.
+Project: `jevtool-site`. Production branch: `main`. Public URL: https://jevtool.dev. Cloudflare fallback: https://jevtool-site.pages.dev.
 
 ```sh
 npx wrangler@4.136.1 login --scopes account:read user:read pages:write workers_kv:write zone:read
@@ -32,6 +32,8 @@ The KV namespace ID in `wrangler.jsonc` is a resource identifier, not a credenti
 2. In Namecheap → Domain List → Manage → Nameservers → Custom DNS, enter the two nameservers assigned by Cloudflare. This changes DNS hosting; the domain registration remains at Namecheap.
 3. In Pages → `jevtool-site` → Custom domains, add `jevtool.dev` and `www.jevtool.dev`. Approve the corresponding DNS records and allow activation/TLS issuance.
 4. The Pages middleware redirects every `www.jevtool.dev` path and query to the apex with HTTP 301.
+
+The domain is registered at Namecheap and uses Cloudflare nameservers `dawn.ns.cloudflare.com` and `felipe.ns.cloudflare.com`. Both website DNS records point to `jevtool-site.pages.dev`; the existing mail records are preserved. Deployment checks and the latest certificate status are recorded in `../qa/verification.json`.
 
 ```sh
 curl -I https://jevtool.dev/

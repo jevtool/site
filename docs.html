@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Install &amp; use Jevtool CLI</title>
-<meta name="description" content="Install the Jevtool preview, check agent deliveries against an acceptance checklist, and filter JSONL records by meaning.">
+<title>Install &amp; use jevtool</title>
+<meta name="description" content="Install jevtool, evaluate Jev judgments against labeled cases, add the Claude Code plugins, check agent deliveries and filter records by meaning.">
 <link rel="canonical" href="https://jevtool.dev/docs.html">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#f386a1">
@@ -25,18 +25,54 @@ ul,ol{padding-left:24px}li{margin:8px 0}.table-wrap{overflow-x:auto}table{border
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <div class="wrap">
-<nav aria-label="Documentation navigation"><a href="/">jevtool.dev</a><a href="#verify">Delivery checks</a><a href="#grep">Semantic filter</a></nav>
-<header><h1>From download<br>to your first check.</h1><p>Two tools, one CLI. Start with a local demo, then bring your own checklist and TypeSafe key.</p></header>
+<nav aria-label="Documentation navigation"><a href="/">jevtool.dev</a><a href="#eval">Evaluate</a><a href="#plugins">Plugins</a><a href="#verify">Delivery checks</a><a href="#grep">Semantic filter</a><a href="https://github.com/jevtool/jevtool">GitHub</a></nav>
+<header><h1>From install<br>to your first eval.</h1><p>One CLI and three Claude Code plugins. Bring your own TypeSafe key.</p></header>
 <main id="main"><article>
 <section id="install">
-<h2>Install the preview</h2>
-<p>You need Node.js 20+ and Git. The archive includes the MIT-licensed source. This preview is not yet available on the npm registry.</p>
-<a class="download" href="/downloads/jevtool-cli-0.1.0.tgz" download>Download CLI archive →</a>
-<p>Open a terminal in the folder where you downloaded the archive:</p>
-<pre tabindex="0"><code>npm install -g ./jevtool-cli-0.1.0.tgz
+<h2>Install</h2>
+<p>You need Node.js 20+. Git is needed only for delivery checks. MIT licensed, no runtime dependencies.</p>
+<pre tabindex="0"><code>npm install -g jevtool
 jevtool --help
 jevtool demo</code></pre>
-<p>The demo creates a temporary Git repository and runs a real failing login test. It finds a missing regression test and an unexpected CSS change, then removes the temporary repository. No API key or network request is involved.</p>
+<p>Or run any command without installing: <code>npx jevtool eval --examples</code>. Semantic commands need a key from <a href="https://console.typesafe.ai/">TypeSafe</a>:</p>
+<pre tabindex="0"><code>export TYPESAFE_API_KEY=...</code></pre>
+<p>The demo creates a temporary Git repository and runs a real failing login test. It needs no key and sends no network request.</p>
+</section>
+<section id="eval">
+<h2>Evaluate a judgment</h2>
+<p>Start from one of the ten bundled suites, run it, then replace its cases with your own labeled data.</p>
+<pre tabindex="0"><code>jevtool eval --examples
+jevtool eval example:support-triage
+jevtool eval example:support-triage --save my-suite.json</code></pre>
+<p>A suite is one JSON file: the questions exactly as your application sends them, and cases with the answers you expect.</p>
+<pre tabindex="0"><code>{
+  "name": "support-triage",
+  "model": "jev-1.13.0",
+  "target": 0.95,
+  "questions": {
+    "category": { "type": "choice", "instructions": "What does the customer who wrote `email` mainly want?",
+      "criteria": { "refund": "Money back for a specific past charge.", "howto": "Learn how to do something.", "other": "Anything else." } },
+    "escalate": { "type": "noul", "instructions": "Does `email` threaten a chargeback or legal action?" }
+  },
+  "cases": [
+    { "id": "s1", "state": { "email": "Charged twice, refund one please." },
+      "expect": { "category": "refund", "escalate": false }, "tags": ["en"] }
+  ]
+}</code></pre>
+<p><code>expect</code> takes an option or a list of acceptable options for a Choice, <code>true</code>/<code>false</code> for a Noul, and a 0-based level for a Score. Use <code>tags</code> to split accuracy, for example by language or source.</p>
+<pre tabindex="0"><code>jevtool eval my-suite.json --compare jev-1.14.0     # answers that change on a new version
+jevtool eval my-suite.json --order-check            # Choices re-asked with options reversed
+jevtool eval my-suite.json --min-accuracy 0.9 --json --output eval.json   # CI gate</code></pre>
+<p>For each question you get accuracy, accuracy per tag, every miss with its certainty, and a suggested cutoff: the lowest certainty at which the automatically handled cases still reach <code>target</code>. Send the cases below it to a person or a larger model. Confident misses usually mean the criteria are read literally; add the missing boundary and re-run the whole suite to check nothing regressed.</p>
+<p>Each case's <code>state</code> and the questions are sent to TypeSafe. Labels stay on your machine.</p>
+</section>
+<section id="plugins">
+<h2>Claude Code plugins</h2>
+<pre tabindex="0"><code>claude plugin marketplace add jevtool/claude-plugins
+claude plugin install jev-guard@jevtool
+claude plugin install jev-eval@jevtool
+claude plugin install jev-verify@jevtool</code></pre>
+<p><strong>jev-guard</strong> scores every shell command, file write and URL fetch before it runs and blocks or asks about risky ones. It never auto-approves, fails open without a key, and logs decisions to <code>~/.jevtool/guard.jsonl</code>. Set <code>JEV_GUARD_MODE=ask</code> to turn blocks into prompts. <strong>jev-eval</strong> and <strong>jev-verify</strong> are skills that teach Claude to run <code>jevtool eval</code> and <code>jevtool verify</code> at the right moments. Details: <a href="https://github.com/jevtool/claude-plugins">github.com/jevtool/claude-plugins</a>.</p>
 </section>
 <section id="verify">
 <h2>Check an agent delivery</h2>
@@ -67,15 +103,15 @@ cat events.jsonl | jevtool grep "Customer requests a refund" --format jsonl --js
 </section>
 <section id="results">
 <h2>Read the result</h2>
-<div class="table-wrap"><table><thead><tr><th>Exit</th><th>Delivery check</th><th>Semantic filter</th></tr></thead><tbody>
-<tr><td><code>0</code></td><td>All checks supported</td><td>Matches found, no uncertain records</td></tr>
-<tr><td><code>1</code></td><td>A check failed</td><td>No matches</td></tr>
-<tr><td><code>2</code></td><td>Review required</td><td>Uncertain records need review</td></tr>
-<tr><td><code>3</code></td><td>Configuration or operational error</td><td>Configuration or operational error</td></tr>
+<div class="table-wrap"><table><thead><tr><th>Exit</th><th>Eval</th><th>Delivery check</th><th>Semantic filter</th></tr></thead><tbody>
+<tr><td><code>0</code></td><td>Passed</td><td>All checks supported</td><td>Matches found, no uncertain records</td></tr>
+<tr><td><code>1</code></td><td>Below <code>--min-accuracy</code></td><td>A check failed</td><td>No matches</td></tr>
+<tr><td><code>2</code></td><td>Some requests failed</td><td>Review required</td><td>Uncertain records need review</td></tr>
+<tr><td><code>3</code></td><td>Configuration error</td><td>Configuration or operational error</td><td>Configuration or operational error</td></tr>
 </tbody></table></div>
 <p style="margin-top:16px">A supported check describes evidence support, not a guarantee of code correctness. Initial thresholds need testing on your own examples. Start with advisory checks before making them a CI gate.</p>
-<p>This release provides a local CLI, not an automatically installed agent hook. Hosted accounts, team dashboards and subscriptions are future work. Live model accuracy has not yet been evaluated for this preview.</p>
-<p><a href="/cli-readme.md">Full CLI reference</a> · <a href="/downloads/SHA256SUMS.txt">Archive checksum</a></p>
+<p>Eval accuracy describes your suite on the model version you ran. It is a measurement, not a guarantee for unseen data.</p>
+<p><a href="https://github.com/jevtool/jevtool#readme">Full CLI reference</a> · <a href="https://www.npmjs.com/package/jevtool">npm</a> · <a href="/downloads/jevtool-0.2.0.tgz">Offline archive</a> · <a href="/downloads/SHA256SUMS.txt">Checksum</a></p>
 </section>
 </article></main>
 <footer>Runs on Jev by TypeSafe. Not affiliated with TypeSafe AI.</footer>
