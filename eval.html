@@ -73,7 +73,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 <p class="lede">Pick an example or paste your own suite, add your TypeSafe key, and see how Jev does on your labeled cases. Same engine as <code>jevtool eval</code>, nothing to install.</p>
 
 <form id="f" class="win" autocomplete="off">
-  <div class="bar"><span>Suite</span><span>up to 60 cases online · unlimited with the CLI</span></div>
+  <div class="bar"><span>Suite</span><span>runs in your browser · one request per case</span></div>
   <div class="body">
     <div class="chips" id="examples" role="group" aria-label="Example suites"><span class="dim">Loading examples…</span></div>
     <label for="suite">Suite JSON <small>questions as your app sends them, cases with the answers you expect · <a href="/docs.html#eval">format</a></small></label>
@@ -98,7 +98,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
       <button type="button" class="alt" id="copycli">Copy CLI command</button>
       <span id="status" class="status" role="status" aria-live="polite"></span>
     </div>
-    <p class="fine">Your key and the suite's <code>state</code> values go through jevtool.dev's serverless function to TypeSafe for this run only. They are not stored or logged, and labels never leave the suite you see here. To keep everything on your machine, run the same suite with <code>npx jevtool eval suite.json</code>.</p>
+    <p class="fine">The evaluation runs in this tab. Each case's <code>state</code> and the questions go through jevtool.dev's serverless relay to TypeSafe with your key, for this run only; nothing is stored or logged, and your expected labels never leave the browser. To keep everything on your machine, run the same suite with <code>npx jevtool eval suite.json</code>.</p>
   </div>
 </form>
 
@@ -110,120 +110,126 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,te
 <footer><span>jevtool.dev · <a href="mailto:hello@jevtool.dev">hello@jevtool.dev</a></span><span>Runs on Jev by TypeSafe. Not affiliated.</span></footer>
 </div>
 
-<script>
-(function () {
-  var $ = function (id) { return document.getElementById(id); };
-  var suiteEl = $('suite'), keyEl = $('key'), status = $('status'), examples = $('examples');
-  var selected = null;
+<script type="module">
+import { validateSuite, evaluateSuite, PRICE_PER_INPUT_TOKEN } from '/vendor/jevtool-eval-core.mjs';
+const $ = id => document.getElementById(id);
+const suiteEl = $('suite'), keyEl = $('key'), status = $('status'), examples = $('examples');
+let selected = null;
 
-  try { var saved = sessionStorage.getItem('ts-key'); if (saved) { keyEl.value = saved; $('remember').checked = true; } } catch (e) {}
-  keyEl.addEventListener('input', persistKey); $('remember').addEventListener('change', persistKey);
-  function persistKey() { try { if ($('remember').checked) sessionStorage.setItem('ts-key', keyEl.value); else sessionStorage.removeItem('ts-key'); } catch (e) {} }
+try { const saved = sessionStorage.getItem('ts-key'); if (saved) { keyEl.value = saved; $('remember').checked = true; } } catch {}
+const persistKey = () => { try { if ($('remember').checked) sessionStorage.setItem('ts-key', keyEl.value); else sessionStorage.removeItem('ts-key'); } catch {} };
+keyEl.addEventListener('input', persistKey); $('remember').addEventListener('change', persistKey);
 
-  fetch('/examples/suites/index.json').then(function (r) { return r.json(); }).then(function (list) {
-    examples.innerHTML = '';
-    list.forEach(function (e) {
-      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = e.name; b.title = e.description;
-      b.setAttribute('aria-pressed', 'false');
-      b.addEventListener('click', function () { loadExample(e.name, b); });
-      examples.appendChild(b);
-    });
-    var want = new URLSearchParams(location.search).get('example');
-    var first = examples.querySelector('.chip');
-    var pick = want ? Array.prototype.find.call(examples.querySelectorAll('.chip'), function (c) { return c.textContent === want; }) : null;
-    if (!suiteEl.value.trim()) (pick || first) && (pick || first).click();
-  }).catch(function () { examples.innerHTML = '<span class="dim">Examples unavailable. Paste a suite below.</span>'; });
-
-  function loadExample(name, chip) {
-    fetch('/examples/suites/' + name + '.json').then(function (r) { return r.text(); }).then(function (t) {
-      suiteEl.value = t; selected = name;
-      Array.prototype.forEach.call(examples.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'); });
-      $('report').hidden = true; status.textContent = ''; status.className = 'status';
-    });
+fetch('/suites/index.json').then(r => r.json()).then(list => {
+  examples.innerHTML = '';
+  for (const e of list) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = e.name; b.title = e.description;
+    b.setAttribute('aria-pressed', 'false'); b.addEventListener('click', () => loadExample(e.name, b)); examples.appendChild(b);
   }
-  suiteEl.addEventListener('input', function () { selected = null; Array.prototype.forEach.call(examples.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', 'false'); }); });
+  const want = new URLSearchParams(location.search).get('example');
+  const chips = [...examples.querySelectorAll('.chip')];
+  const pick = chips.find(c => c.textContent === want) || chips[0];
+  if (!suiteEl.value.trim() && pick) pick.click();
+}).catch(() => { examples.innerHTML = '<span class="dim">Examples unavailable. Paste a suite below.</span>'; });
 
-  function cliCommand() {
-    var cmd = 'npx jevtool eval ' + (selected ? 'example:' + selected : 'suite.json') + ' --model ' + $('model').value;
-    if ($('compare').checked) cmd += ' --compare ' + $('compareModel').value;
-    if ($('order').checked) cmd += ' --order-check';
-    return cmd;
-  }
-  $('copycli').addEventListener('click', function () {
-    var cmd = cliCommand();
-    (navigator.clipboard ? navigator.clipboard.writeText(cmd) : Promise.reject()).then(function () { say('Copied: ' + cmd); }, function () { say(cmd); });
+function loadExample(name, chip) {
+  fetch('/suites/' + name + '.json').then(r => r.text()).then(t => {
+    suiteEl.value = t; selected = name;
+    for (const c of examples.querySelectorAll('.chip')) c.setAttribute('aria-pressed', c === chip ? 'true' : 'false');
+    $('report').hidden = true; say('');
   });
-  function say(msg, err) { status.textContent = msg; status.className = 'status' + (err ? ' err' : ''); }
+}
+suiteEl.addEventListener('input', () => { selected = null; for (const c of examples.querySelectorAll('.chip')) c.setAttribute('aria-pressed', 'false'); });
 
-  $('f').addEventListener('submit', function (ev) {
-    ev.preventDefault();
-    var suite;
-    try { suite = JSON.parse(suiteEl.value); } catch (e) { return say('The suite is not valid JSON: ' + e.message, true); }
-    if (!suite || !Array.isArray(suite.cases)) return say('The suite needs a "cases" array.', true);
-    if (suite.cases.length > 60) return say('The online runner takes up to 60 cases. Use the CLI for this suite: ' + cliCommand(), true);
-    var body = { suite: suite, model: $('model').value, orderCheck: $('order').checked };
-    if ($('compare').checked) body.compare = $('compareModel').value;
-    var run = $('run'); run.disabled = true; say('Running ' + suite.cases.length + ' cases…');
-    var started = Date.now();
-    fetch('/api/eval', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-TypeSafe-Key': keyEl.value.trim() }, body: JSON.stringify(body) })
-      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
-      .then(function (res) {
-        if (!res.ok) return say(res.data.error || 'The run failed. Please try again.', true);
-        render(res.data, Date.now() - started);
-        say('Done in ' + Math.round((Date.now() - started) / 100) / 10 + ' s.');
-      })
-      .catch(function () { say('Could not reach jevtool.dev. Check your connection and try again.', true); })
-      .then(function () { run.disabled = false; });
-  });
+function cliCommand() {
+  let cmd = 'npx jevtool eval ' + (selected ? 'example:' + selected : 'suite.json') + ' --model ' + $('model').value;
+  if ($('compare').checked) cmd += ' --compare ' + $('compareModel').value;
+  if ($('order').checked) cmd += ' --order-check';
+  return cmd;
+}
+$('copycli').addEventListener('click', () => {
+  const cmd = cliCommand();
+  (navigator.clipboard ? navigator.clipboard.writeText(cmd) : Promise.reject()).then(() => say('Copied: ' + cmd), () => say(cmd));
+});
+function say(msg, err) { status.textContent = msg; status.className = 'status' + (err ? ' err' : ''); }
 
-  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  function pct(v) { return v == null ? 'n/a' : Math.round(v * 100) + '%'; }
-  function show(v) { return Array.isArray(v) ? v.join('|') : String(v); }
+// One request per case goes through /api/judge; the evaluation itself runs here.
+function judgeFor(model, key, progress) {
+  return async (state, questions) => {
+    const r = await fetch('/api/judge', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-TypeSafe-Key': key }, body: JSON.stringify({ model, state, questions }) });
+    const d = await r.json().catch(() => ({}));
+    progress();
+    if (!r.ok) throw new Error(d.error || 'Request failed (HTTP ' + r.status + ').');
+    return d;
+  };
+}
 
-  function render(rep, ms) {
-    var h = '';
-    rep.runs.forEach(function (run) {
-      h += '<h2>' + esc(run.model) + (run.resolvedModels.length && run.resolvedModels[0] !== run.model ? ' <span class="dim">(answered by ' + esc(run.resolvedModels.join(', ')) + ')</span>' : '') + '</h2>';
-      if (run.errors.length === run.requests) {
-        h += '<p class="bad">Every request failed: ' + esc(run.errors[0].error) + '</p>'; return;
-      }
-      h += '<div class="tablewrap"><table><thead><tr><th>Question</th><th>Type</th><th>Accuracy</th><th>Automate at</th><th>Covers</th><th>By tag</th></tr></thead><tbody>';
-      Object.keys(run.questions).forEach(function (id) {
-        var q = run.questions[id];
-        var tags = Object.keys(q.tags).map(function (t) { return esc(t) + ' ' + pct(q.tags[t].correct / q.tags[t].n); }).join(' · ');
-        h += '<tr><td><code>' + esc(id) + '</code>' + (q.orderFlips && q.orderFlips.length ? '<br><span class="bad">order changed the answer on ' + esc(q.orderFlips.join(', ')) + '</span>' : '') + '</td><td>' + q.type + '</td>' +
-          (q.scored ? '<td class="n">' + pct(q.accuracy) + ' <span class="dim">(' + q.correct + '/' + q.scored + ')</span></td>' +
-            (q.threshold ? '<td class="n">≥' + q.threshold.threshold + '</td><td class="n">' + pct(q.threshold.coverage) + ' <span class="dim">at ' + pct(q.threshold.accuracy) + '</span></td>' : '<td colspan="2" class="dim">no cutoff reaches ' + pct(rep.target) + '</td>')
-            : '<td colspan="3" class="dim">no labeled cases</td>') + '<td>' + tags + '</td></tr>';
-      });
-      h += '</tbody></table></div>';
-      var misses = [];
-      Object.keys(run.questions).forEach(function (id) { run.questions[id].misses.forEach(function (m) { misses.push({ q: id, m: m }); }); });
-      if (misses.length) {
-        h += '<h2>Misses</h2><div class="tablewrap"><table><thead><tr><th>Case</th><th>Question</th><th>Got</th><th>Expected</th><th>Certainty</th></tr></thead><tbody>';
-        misses.forEach(function (x) { h += '<tr><td>' + esc(x.m.id) + '</td><td><code>' + esc(x.q) + '</code></td><td>' + esc(show(x.m.predicted)) + '</td><td>' + esc(show(x.m.expected)) + '</td><td class="n">' + x.m.certainty + '</td></tr>'; });
-        h += '</tbody></table></div><p class="fine">High-certainty misses usually mean a criterion is read literally: add the missing boundary to the option text and re-run. Low-certainty misses are the cases to send to a person or a bigger model.</p>';
-      } else h += '<p class="ok">No misses.</p>';
-      if (run.errors.length) h += '<p class="bad">' + run.errors.length + ' request(s) failed: ' + esc(run.errors[0].error) + '</p>';
-      h += '<p class="dim">latency p50 ' + Math.round(run.latencyMs.p50 || 0) + ' ms · p95 ' + Math.round(run.latencyMs.p95 || 0) + ' ms' + (run.estCostPer1kCalls != null ? ' · ' + run.avgInputTokens + ' input tokens/call · ~$' + run.estCostPer1kCalls + ' per 1k calls at list price' : '') + '</p>';
-    });
-    rep.comparisons.forEach(function (c) {
-      var flips = Object.keys(c.flips).filter(function (q) { return c.flips[q].length; });
-      h += '<h2>' + esc(c.from) + ' → ' + esc(c.to) + '</h2>';
-      h += flips.length ? '<ul>' + flips.map(function (q) { return '<li><code>' + esc(q) + '</code> changed on ' + c.flips[q].length + ' case(s): ' + c.flips[q].slice(0, 8).map(function (f) { return esc(f.id) + ' ' + esc(show(f.from)) + '→' + esc(show(f.to)); }).join(', ') + '</li>'; }).join('') + '</ul>' : '<p class="ok">No answers changed.</p>';
-    });
-    h += '<div class="row" style="margin-top:16px"><button type="button" class="alt" id="dl">Download report JSON</button><span class="dim">Same shape as <code>jevtool eval --json</code>.</span></div>';
-    h += '<p class="fine">' + esc(rep.note) + '</p>';
-    $('rbody').innerHTML = h;
-    $('rmeta').textContent = rep.cases + ' cases · ' + rep.status.toUpperCase() + ' · ' + Math.round(ms / 100) / 10 + ' s';
-    $('report').hidden = false;
-    $('dl').addEventListener('click', function () {
-      var blob = new Blob([JSON.stringify(rep, null, 2)], { type: 'application/json' });
-      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (rep.suite || 'eval') + '.report.json'; a.click(); URL.revokeObjectURL(a.href);
-    });
-    $('report').scrollIntoView({ behavior: 'smooth', block: 'start' });
+$('f').addEventListener('submit', async ev => {
+  ev.preventDefault();
+  let suite;
+  try { suite = JSON.parse(suiteEl.value); } catch (e) { return say('The suite is not valid JSON: ' + e.message, true); }
+  try { validateSuite(suite); } catch (e) { return say(e.message, true); }
+  const models = [$('model').value]; if ($('compare').checked && $('compareModel').value !== models[0]) models.push($('compareModel').value);
+  const hasChoice = Object.values(suite.questions).some(q => q.type === 'choice');
+  const total = suite.cases.length * models.length * ($('order').checked && hasChoice ? 2 : 1);
+  if (total > 200 && !confirm('This run makes ' + total + ' Jev requests on your key (roughly $' + (total * 500 * PRICE_PER_INPUT_TOKEN).toFixed(2) + ' at list price). Continue?')) return;
+  const key = keyEl.value.trim(); if (!key) return say('Enter your TypeSafe API key.', true);
+  const run = $('run'); run.disabled = true;
+  let done = 0; const progress = () => say('Running… ' + (++done) + ' of ' + total + ' requests');
+  progress(); done = 0;
+  const started = Date.now();
+  try {
+    const report = await evaluateSuite({ suite, models, concurrency: 4, orderCheck: $('order').checked, judgeFor: m => judgeFor(m, key, progress) });
+    report.runner = 'jevtool.dev';
+    render(report, Date.now() - started);
+    say('Done in ' + Math.round((Date.now() - started) / 100) / 10 + ' s.');
+  } catch (e) { say('The run failed: ' + e.message, true); }
+  run.disabled = false;
+});
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const pct = v => v == null ? 'n/a' : Math.round(v * 100) + '%';
+const show = v => Array.isArray(v) ? v.join('|') : String(v);
+
+function render(rep, ms) {
+  let h = '';
+  for (const run of rep.runs) {
+    h += '<h2>' + esc(run.model) + (run.resolvedModels.length && run.resolvedModels[0] !== run.model ? ' <span class="dim">(answered by ' + esc(run.resolvedModels.join(', ')) + ')</span>' : '') + '</h2>';
+    if (run.errors.length === run.requests) { h += '<p class="bad">Every request failed: ' + esc(run.errors[0].error) + '</p>'; continue; }
+    h += '<div class="tablewrap"><table><thead><tr><th>Question</th><th>Type</th><th>Accuracy</th><th>Automate at</th><th>Covers</th><th>By tag</th></tr></thead><tbody>';
+    for (const [id, q] of Object.entries(run.questions)) {
+      const tags = Object.entries(q.tags).map(([t, v]) => esc(t) + ' ' + pct(v.correct / v.n)).join(' · ');
+      h += '<tr><td><code>' + esc(id) + '</code>' + (q.orderFlips && q.orderFlips.length ? '<br><span class="bad">order changed the answer on ' + esc(q.orderFlips.join(', ')) + '</span>' : '') + '</td><td>' + q.type + '</td>' +
+        (q.scored ? '<td class="n">' + pct(q.accuracy) + ' <span class="dim">(' + q.correct + '/' + q.scored + ')</span></td>' +
+          (q.threshold ? '<td class="n">≥' + q.threshold.threshold + '</td><td class="n">' + pct(q.threshold.coverage) + ' <span class="dim">at ' + pct(q.threshold.accuracy) + '</span></td>' : '<td colspan="2" class="dim">no cutoff reaches ' + pct(rep.target) + '</td>')
+          : '<td colspan="3" class="dim">no labeled cases</td>') + '<td>' + tags + '</td></tr>';
+    }
+    h += '</tbody></table></div>';
+    const misses = Object.entries(run.questions).flatMap(([id, q]) => q.misses.map(m => ({ q: id, m })));
+    if (misses.length) {
+      h += '<h2>Misses</h2><div class="tablewrap"><table><thead><tr><th>Case</th><th>Question</th><th>Got</th><th>Expected</th><th>Certainty</th></tr></thead><tbody>';
+      for (const x of misses) h += '<tr><td>' + esc(x.m.id) + '</td><td><code>' + esc(x.q) + '</code></td><td>' + esc(show(x.m.predicted)) + '</td><td>' + esc(show(x.m.expected)) + '</td><td class="n">' + x.m.certainty + '</td></tr>';
+      h += '</tbody></table></div><p class="fine">High-certainty misses usually mean a criterion is read literally: add the missing boundary to the option text and re-run. Low-certainty misses are the cases to send to a person or a bigger model.</p>';
+    } else h += '<p class="ok">No misses.</p>';
+    if (run.errors.length) h += '<p class="bad">' + run.errors.length + ' request(s) failed: ' + esc(run.errors[0].error) + '</p>';
+    h += '<p class="dim">latency p50 ' + Math.round(run.latencyMs.p50 || 0) + ' ms · p95 ' + Math.round(run.latencyMs.p95 || 0) + ' ms (through jevtool.dev)' + (run.estCostPer1kCalls != null ? ' · ' + run.avgInputTokens + ' input tokens/call · ~$' + run.estCostPer1kCalls + ' per 1k calls at list price' : '') + '</p>';
   }
-})();
+  for (const c of rep.comparisons) {
+    const flips = Object.keys(c.flips).filter(q => c.flips[q].length);
+    h += '<h2>' + esc(c.from) + ' → ' + esc(c.to) + '</h2>';
+    h += flips.length ? '<ul>' + flips.map(q => '<li><code>' + esc(q) + '</code> changed on ' + c.flips[q].length + ' case(s): ' + c.flips[q].slice(0, 8).map(f => esc(f.id) + ' ' + esc(show(f.from)) + '→' + esc(show(f.to))).join(', ') + '</li>').join('') + '</ul>' : '<p class="ok">No answers changed.</p>';
+  }
+  h += '<div class="row" style="margin-top:16px"><button type="button" class="alt" id="dl">Download report JSON</button><span class="dim">Same shape as <code>jevtool eval --json</code>.</span></div>';
+  h += '<p class="fine">' + esc(rep.note) + '</p>';
+  $('rbody').innerHTML = h;
+  $('rmeta').textContent = rep.cases + ' cases · ' + rep.status.toUpperCase() + ' · ' + Math.round(ms / 100) / 10 + ' s';
+  $('report').hidden = false;
+  $('dl').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify(rep, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (rep.suite || 'eval') + '.report.json'; a.click(); URL.revokeObjectURL(a.href);
+  });
+  $('report').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 </script>
 </body>
 </html>
