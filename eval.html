@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Run an eval — jevtool</title>
+<meta name="description" content="Paste a suite of labeled cases, run it against Jev with your own TypeSafe key, and read accuracy, misses, a safe confidence cutoff and version diffs in your browser.">
+<link rel="canonical" href="https://jevtool.dev/eval">
+<meta name="theme-color" content="#f386a1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700&family=Fragment+Mono&display=swap">
+<style>
+:root{--pink:#f386a1;--ink:#1e1e1e;--paper:#fefefe;--line:#e5e5e5;--mute:#49393f;--teal:#007c73;--green:#087d42;--red:#b3261e;
+  --sans:"Host Grotesk","Helvetica Neue",Arial,sans-serif;--mono:"Fragment Mono","JetBrains Mono",Menlo,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pink);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;padding:0 clamp(16px,4vw,40px) 64px}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto}
+nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--ink);flex-wrap:wrap}
+nav .brand{font-weight:600;text-decoration:none}
+nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;font-size:14px}
+nav a:not(.brand){text-decoration:none}nav a:hover{text-decoration:underline}
+.skip{position:absolute;top:8px;left:16px;background:var(--ink);color:var(--paper);padding:8px 12px;z-index:2;transform:translateY(-160%)}.skip:focus{transform:none}
+h1{font-size:clamp(34px,5vw,56px);line-height:1;letter-spacing:-.03em;font-weight:500;margin:36px 0 10px}
+h2{font-size:20px;font-weight:600;margin:0 0 10px}
+p{margin:0 0 10px;max-width:70ch}
+.lede{font-size:17px}
+.win{background:var(--paper);border:1px solid var(--ink);box-shadow:3px 3px 0 var(--ink);margin-top:18px}
+.win .bar{background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:11px;padding:3px 8px;display:flex;justify-content:space-between}
+.win .body{padding:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+label{display:block;font-weight:600;margin:12px 0 6px}
+label small{font-weight:400;color:var(--mute)}
+input[type=text],input[type=password],select,textarea{width:100%;border:1px solid var(--ink);border-radius:0;background:var(--paper);padding:10px;font:inherit}
+textarea{font-family:var(--mono);font-size:12.5px;min-height:320px;resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.row label{margin:0;font-weight:400}
+button{border:1px solid var(--ink);background:var(--ink);color:var(--paper);font:inherit;padding:10px 16px;cursor:pointer}
+button.alt{background:var(--paper);color:var(--ink)}
+button:disabled{opacity:.6;cursor:wait}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--mono);font-size:12px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);padding:4px 9px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.status{min-height:1.6em;font-size:14px;margin-top:10px}
+.status.err{color:var(--red)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:400;background:#f6f6f6}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap}
+code{font-family:var(--mono);font-size:12.5px;background:#f6f6f6;border:1px solid var(--line);padding:1px 5px}
+pre{font-family:var(--mono);font-size:12.5px;background:#f6f6f6;border:1px solid var(--line);padding:10px;overflow-x:auto;margin:0}
+.ok{color:var(--green)}.bad{color:var(--red)}.dim{color:var(--mute)}
+.fine{font-size:13px;color:var(--mute);margin-top:14px;max-width:80ch}
+.tablewrap{overflow-x:auto}
+.report h2{margin-top:18px}
+footer{margin-top:40px;font-family:var(--mono);font-size:11px;border-top:1px solid var(--ink);padding-top:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+@media(max-width:480px){nav ul{order:3;flex-basis:100%;gap:18px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+<nav aria-label="Main navigation">
+  <a class="brand" href="/">jevtool.dev</a>
+  <ul><li><a href="/#results">Results</a></li><li><a href="/#tools">Tools</a></li><li><a href="/#plugins">Plugins</a></li><li><a href="/docs.html">Docs</a></li><li><a href="https://github.com/jevtool/jevtool">GitHub</a></li></ul>
+</nav>
+<main id="main">
+<h1>Run an eval in your browser.</h1>
+<p class="lede">Pick an example or paste your own suite, add your TypeSafe key, and see how Jev does on your labeled cases. Same engine as <code>jevtool eval</code>, nothing to install.</p>
+
+<form id="f" class="win" autocomplete="off">
+  <div class="bar"><span>Suite</span><span>up to 60 cases online · unlimited with the CLI</span></div>
+  <div class="body">
+    <div class="chips" id="examples" role="group" aria-label="Example suites"><span class="dim">Loading examples…</span></div>
+    <label for="suite">Suite JSON <small>questions as your app sends them, cases with the answers you expect · <a href="/docs.html#eval">format</a></small></label>
+    <textarea id="suite" name="suite" spellcheck="false" required></textarea>
+    <div class="grid">
+      <div>
+        <label for="key">TypeSafe API key <small>from <a href="https://console.typesafe.ai" rel="noopener">console.typesafe.ai</a></small></label>
+        <input id="key" name="key" type="password" placeholder="ts-…" maxlength="256" required>
+        <div class="row" style="margin-top:8px"><label><input type="checkbox" id="remember"> Keep in this tab until I close it</label></div>
+      </div>
+      <div>
+        <label for="model">Model</label>
+        <div class="row">
+          <select id="model" name="model" style="width:auto"><option>jev-1.13.0</option><option>jev-1.14.0</option><option>jev-latest</option><option>jev-preview</option></select>
+          <label><input type="checkbox" id="compare"> Compare with <select id="compareModel" style="width:auto"><option>jev-1.14.0</option><option>jev-1.13.0</option><option>jev-preview</option></select></label>
+          <label><input type="checkbox" id="order"> Option-order check</label>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:16px">
+      <button type="submit" id="run">Run eval →</button>
+      <button type="button" class="alt" id="copycli">Copy CLI command</button>
+      <span id="status" class="status" role="status" aria-live="polite"></span>
+    </div>
+    <p class="fine">Your key and the suite's <code>state</code> values go through jevtool.dev's serverless function to TypeSafe for this run only. They are not stored or logged, and labels never leave the suite you see here. To keep everything on your machine, run the same suite with <code>npx jevtool eval suite.json</code>.</p>
+  </div>
+</form>
+
+<div id="report" class="win report" hidden>
+  <div class="bar"><span>Report</span><span id="rmeta"></span></div>
+  <div class="body" id="rbody"></div>
+</div>
+</main>
+<footer><span>jevtool.dev · <a href="mailto:hello@jevtool.dev">hello@jevtool.dev</a></span><span>Runs on Jev by TypeSafe. Not affiliated.</span></footer>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var suiteEl = $('suite'), keyEl = $('key'), status = $('status'), examples = $('examples');
+  var selected = null;
+
+  try { var saved = sessionStorage.getItem('ts-key'); if (saved) { keyEl.value = saved; $('remember').checked = true; } } catch (e) {}
+  keyEl.addEventListener('input', persistKey); $('remember').addEventListener('change', persistKey);
+  function persistKey() { try { if ($('remember').checked) sessionStorage.setItem('ts-key', keyEl.value); else sessionStorage.removeItem('ts-key'); } catch (e) {} }
+
+  fetch('/examples/suites/index.json').then(function (r) { return r.json(); }).then(function (list) {
+    examples.innerHTML = '';
+    list.forEach(function (e) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = e.name; b.title = e.description;
+      b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', function () { loadExample(e.name, b); });
+      examples.appendChild(b);
+    });
+    var want = new URLSearchParams(location.search).get('example');
+    var first = examples.querySelector('.chip');
+    var pick = want ? Array.prototype.find.call(examples.querySelectorAll('.chip'), function (c) { return c.textContent === want; }) : null;
+    if (!suiteEl.value.trim()) (pick || first) && (pick || first).click();
+  }).catch(function () { examples.innerHTML = '<span class="dim">Examples unavailable. Paste a suite below.</span>'; });
+
+  function loadExample(name, chip) {
+    fetch('/examples/suites/' + name + '.json').then(function (r) { return r.text(); }).then(function (t) {
+      suiteEl.value = t; selected = name;
+      Array.prototype.forEach.call(examples.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', c === chip ? 'true' : 'false'); });
+      $('report').hidden = true; status.textContent = ''; status.className = 'status';
+    });
+  }
+  suiteEl.addEventListener('input', function () { selected = null; Array.prototype.forEach.call(examples.querySelectorAll('.chip'), function (c) { c.setAttribute('aria-pressed', 'false'); }); });
+
+  function cliCommand() {
+    var cmd = 'npx jevtool eval ' + (selected ? 'example:' + selected : 'suite.json') + ' --model ' + $('model').value;
+    if ($('compare').checked) cmd += ' --compare ' + $('compareModel').value;
+    if ($('order').checked) cmd += ' --order-check';
+    return cmd;
+  }
+  $('copycli').addEventListener('click', function () {
+    var cmd = cliCommand();
+    (navigator.clipboard ? navigator.clipboard.writeText(cmd) : Promise.reject()).then(function () { say('Copied: ' + cmd); }, function () { say(cmd); });
+  });
+  function say(msg, err) { status.textContent = msg; status.className = 'status' + (err ? ' err' : ''); }
+
+  $('f').addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    var suite;
+    try { suite = JSON.parse(suiteEl.value); } catch (e) { return say('The suite is not valid JSON: ' + e.message, true); }
+    if (!suite || !Array.isArray(suite.cases)) return say('The suite needs a "cases" array.', true);
+    if (suite.cases.length > 60) return say('The online runner takes up to 60 cases. Use the CLI for this suite: ' + cliCommand(), true);
+    var body = { suite: suite, model: $('model').value, orderCheck: $('order').checked };
+    if ($('compare').checked) body.compare = $('compareModel').value;
+    var run = $('run'); run.disabled = true; say('Running ' + suite.cases.length + ' cases…');
+    var started = Date.now();
+    fetch('/api/eval', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-TypeSafe-Key': keyEl.value.trim() }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+      .then(function (res) {
+        if (!res.ok) return say(res.data.error || 'The run failed. Please try again.', true);
+        render(res.data, Date.now() - started);
+        say('Done in ' + Math.round((Date.now() - started) / 100) / 10 + ' s.');
+      })
+      .catch(function () { say('Could not reach jevtool.dev. Check your connection and try again.', true); })
+      .then(function () { run.disabled = false; });
+  });
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pct(v) { return v == null ? 'n/a' : Math.round(v * 100) + '%'; }
+  function show(v) { return Array.isArray(v) ? v.join('|') : String(v); }
+
+  function render(rep, ms) {
+    var h = '';
+    rep.runs.forEach(function (run) {
+      h += '<h2>' + esc(run.model) + (run.resolvedModels.length && run.resolvedModels[0] !== run.model ? ' <span class="dim">(answered by ' + esc(run.resolvedModels.join(', ')) + ')</span>' : '') + '</h2>';
+      if (run.errors.length === run.requests) {
+        h += '<p class="bad">Every request failed: ' + esc(run.errors[0].error) + '</p>'; return;
+      }
+      h += '<div class="tablewrap"><table><thead><tr><th>Question</th><th>Type</th><th>Accuracy</th><th>Automate at</th><th>Covers</th><th>By tag</th></tr></thead><tbody>';
+      Object.keys(run.questions).forEach(function (id) {
+        var q = run.questions[id];
+        var tags = Object.keys(q.tags).map(function (t) { return esc(t) + ' ' + pct(q.tags[t].correct / q.tags[t].n); }).join(' · ');
+        h += '<tr><td><code>' + esc(id) + '</code>' + (q.orderFlips && q.orderFlips.length ? '<br><span class="bad">order changed the answer on ' + esc(q.orderFlips.join(', ')) + '</span>' : '') + '</td><td>' + q.type + '</td>' +
+          (q.scored ? '<td class="n">' + pct(q.accuracy) + ' <span class="dim">(' + q.correct + '/' + q.scored + ')</span></td>' +
+            (q.threshold ? '<td class="n">≥' + q.threshold.threshold + '</td><td class="n">' + pct(q.threshold.coverage) + ' <span class="dim">at ' + pct(q.threshold.accuracy) + '</span></td>' : '<td colspan="2" class="dim">no cutoff reaches ' + pct(rep.target) + '</td>')
+            : '<td colspan="3" class="dim">no labeled cases</td>') + '<td>' + tags + '</td></tr>';
+      });
+      h += '</tbody></table></div>';
+      var misses = [];
+      Object.keys(run.questions).forEach(function (id) { run.questions[id].misses.forEach(function (m) { misses.push({ q: id, m: m }); }); });
+      if (misses.length) {
+        h += '<h2>Misses</h2><div class="tablewrap"><table><thead><tr><th>Case</th><th>Question</th><th>Got</th><th>Expected</th><th>Certainty</th></tr></thead><tbody>';
+        misses.forEach(function (x) { h += '<tr><td>' + esc(x.m.id) + '</td><td><code>' + esc(x.q) + '</code></td><td>' + esc(show(x.m.predicted)) + '</td><td>' + esc(show(x.m.expected)) + '</td><td class="n">' + x.m.certainty + '</td></tr>'; });
+        h += '</tbody></table></div><p class="fine">High-certainty misses usually mean a criterion is read literally: add the missing boundary to the option text and re-run. Low-certainty misses are the cases to send to a person or a bigger model.</p>';
+      } else h += '<p class="ok">No misses.</p>';
+      if (run.errors.length) h += '<p class="bad">' + run.errors.length + ' request(s) failed: ' + esc(run.errors[0].error) + '</p>';
+      h += '<p class="dim">latency p50 ' + Math.round(run.latencyMs.p50 || 0) + ' ms · p95 ' + Math.round(run.latencyMs.p95 || 0) + ' ms' + (run.estCostPer1kCalls != null ? ' · ' + run.avgInputTokens + ' input tokens/call · ~$' + run.estCostPer1kCalls + ' per 1k calls at list price' : '') + '</p>';
+    });
+    rep.comparisons.forEach(function (c) {
+      var flips = Object.keys(c.flips).filter(function (q) { return c.flips[q].length; });
+      h += '<h2>' + esc(c.from) + ' → ' + esc(c.to) + '</h2>';
+      h += flips.length ? '<ul>' + flips.map(function (q) { return '<li><code>' + esc(q) + '</code> changed on ' + c.flips[q].length + ' case(s): ' + c.flips[q].slice(0, 8).map(function (f) { return esc(f.id) + ' ' + esc(show(f.from)) + '→' + esc(show(f.to)); }).join(', ') + '</li>'; }).join('') + '</ul>' : '<p class="ok">No answers changed.</p>';
+    });
+    h += '<div class="row" style="margin-top:16px"><button type="button" class="alt" id="dl">Download report JSON</button><span class="dim">Same shape as <code>jevtool eval --json</code>.</span></div>';
+    h += '<p class="fine">' + esc(rep.note) + '</p>';
+    $('rbody').innerHTML = h;
+    $('rmeta').textContent = rep.cases + ' cases · ' + rep.status.toUpperCase() + ' · ' + Math.round(ms / 100) / 10 + ' s';
+    $('report').hidden = false;
+    $('dl').addEventListener('click', function () {
+      var blob = new Blob([JSON.stringify(rep, null, 2)], { type: 'application/json' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (rep.suite || 'eval') + '.report.json'; a.click(); URL.revokeObjectURL(a.href);
+    });
+    $('report').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+})();
+</script>
+</body>
+</html>

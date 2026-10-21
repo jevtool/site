@@ -141,7 +141,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,pre:focus-visible{outli
 <div class="wrap">
 <nav aria-label="Main navigation">
   <div class="brand">jevtool.dev</div>
-  <ul><li><a href="#results">Results</a></li><li><a href="#tools">Tools</a></li><li><a href="#plugins">Plugins</a></li><li><a href="/docs.html">Docs</a></li><li><a href="https://github.com/jevtool/jevtool">GitHub</a></li></ul>
+  <ul><li><a href="#results">Results</a></li><li><a href="#tools">Tools</a></li><li><a href="#plugins">Plugins</a></li><li><a href="#pricing">Pricing</a></li><li><a href="/docs.html">Docs</a></li><li><a href="https://github.com/jevtool/jevtool">GitHub</a></li></ul>
   <a class="cta" href="/docs.html">Install →</a>
 </nav>
 <main id="main">
@@ -152,7 +152,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,pre:focus-visible{outli
       <div class="eyebrow">Tools for Jev, TypeSafe's System One model</div>
       <h1>Test the judgment.</h1>
       <p class="lede">Jev answers a yes/no, choice or score question in about 300&nbsp;ms for a fraction of a cent. jevtool tells you whether those answers are right for <em>your</em> data: accuracy, the cases it misses, a confidence cutoff that is safe to automate at, and what changes on the next Jev version.</p>
-      <div class="hero-actions"><a href="/docs.html">Get started →</a><a href="#plugins">Claude Code plugins</a></div>
+      <div class="hero-actions"><a href="/eval">Run an eval in your browser →</a><a href="/docs.html">Install the CLI</a></div>
       <p class="preview-note"><span class="cmd">npx jevtool eval example:support-triage</span></p>
       <p class="preview-note">Open source, MIT, zero dependencies. Bring your own TypeSafe key.</p>
     </div>
@@ -199,7 +199,7 @@ jev-1.14.0
       </tbody>
     </table>
   </div>
-  <p class="fine">jev-1.13.0, run 2026-10-19 with <code>jevtool eval</code>. Median latency 270–770&nbsp;ms per case; about $0.02 per thousand calls at list price. Cases and labels are hand-written smoke tests of 12–27 cases each, not benchmarks. Automated share is the lowest across a suite's questions. Run any of them yourself: <code>npx jevtool eval example:NAME</code>, then swap in your own data.</p>
+  <p class="fine">jev-1.13.0, run 2026-10-19 with <code>jevtool eval</code>. Median latency 270–770&nbsp;ms per case; about $0.02 per thousand calls at list price. Cases and labels are hand-written smoke tests of 12–27 cases each, not benchmarks. Automated share is the lowest across a suite's questions. Run any of them yourself: <a href="/eval">in your browser</a> with your own key, or <code>npx jevtool eval example:NAME</code>, then swap in your own data.</p>
 </section>
 
 <section id="tools" aria-labelledby="tools-title">
@@ -229,6 +229,7 @@ claude plugin install jev-guard@jevtool</pre>
 <section id="playground" aria-labelledby="playground-title">
   <div class="eyebrow">Playground</div>
   <h2 id="playground-title">Ask one narrow question.</h2>
+  <p class="lede" style="margin-bottom:6px">Three recorded answers. To run your own suite, open the <a href="/eval">online runner</a>.</p>
   <div class="win" style="margin-top:18px">
     <div class="bar"><span>Playground 1.2</span><span id="pg-model">jev-1.13.0</span></div>
     <div class="play">
@@ -247,6 +248,17 @@ claude plugin install jev-guard@jevtool</pre>
       </div>
     </div>
   </div>
+</section>
+
+<section id="pricing" aria-labelledby="pricing-title">
+  <div class="eyebrow">Pricing</div>
+  <h2 id="pricing-title">Free to run. Pay when you want it done for you.</h2>
+  <div class="tools" style="margin-top:18px">
+    <div class="win tool"><div class="bar"><span>Open source</span><span>$0</span></div><div class="body"><div class="name">CLI + plugins</div><span class="prim">MIT · bring your own key</span><p>Everything on this page: <code class="inl">jevtool eval</code>, <code class="inl">verify</code>, <code class="inl">grep</code>, the online runner, ten example suites and the three Claude Code plugins. Jev usage is billed by TypeSafe to your own key.</p><a href="/docs.html">Install →</a></div></div>
+    <div class="win tool"><div class="bar"><span>Integration sprint</span><span id="price-sprint">$2,900</span></div><div class="body"><div class="name">One judgment, shipped</div><span class="prim">fixed price · 2 weeks</span><p>We take one decision in your product, for example ticket routing, moderation, lead scoring or a risk flag, and deliver the questions, a labeled suite built from your data, a defensible confidence cutoff, the integration code and a CI gate. You keep everything.</p><a id="buy-sprint" href="mailto:hello@jevtool.dev?subject=Integration%20sprint">Book a sprint →</a></div></div>
+    <div class="win tool"><div class="bar"><span>Team workbench</span><span>soon</span></div><div class="body"><div class="name">Hosted suites</div><span class="prim">shared history · guard policies</span><p>Saved suites, run history across Jev versions, shareable reports and team-wide jev-guard policies with an audit log. Built on your own TypeSafe key.</p><a href="#early-access">Tell me when it ships →</a></div></div>
+  </div>
+  <p class="fine">Payments are handled by Stripe. Sprint scope and start date are confirmed by email before any charge.</p>
 </section>
 
 <section id="work-with-us" aria-labelledby="work-title">
@@ -286,6 +298,9 @@ claude plugin install jev-guard@jevtool</pre>
 
 <script>
 (function(){
+  // Stripe Payment Links. Leave empty to fall back to email.
+  var PAY={sprint:""};
+  if(PAY.sprint){var b=document.getElementById("buy-sprint");b.href=PAY.sprint;b.textContent="Buy the sprint →";b.rel="noopener";}
   var EX=[
     {req:{model:"jev-1.13.0",state:{ticket:{subject:"Card charged twice, no order",body:"I was charged $49 twice and the order page says nothing was placed. Need this fixed before my flight tomorrow."}},questions:{urgency:{type:"score",instructions:"How urgent is `ticket` for the support team?",criteria:["can wait a week","this week","today","within the hour"]}}},
      ans:[["today",.58],["within the hour",.42],["this week",0],["can wait a week",0]],meta:"score 2.42 of 3 · confidence 0.58 · 709 ms"},

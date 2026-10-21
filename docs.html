@@ -34,7 +34,7 @@ ul,ol{padding-left:24px}li{margin:8px 0}.table-wrap{overflow-x:auto}table{border
 <pre tabindex="0"><code>npm install -g jevtool
 jevtool --help
 jevtool demo</code></pre>
-<p>Or run any command without installing: <code>npx jevtool eval --examples</code>. Semantic commands need a key from <a href="https://console.typesafe.ai/">TypeSafe</a>:</p>
+<p>No install at all: the <a href="/eval">online runner</a> runs a suite of up to 60 cases in your browser with your own key. Or run any command without installing: <code>npx jevtool eval --examples</code>. Semantic commands need a key from <a href="https://console.typesafe.ai/">TypeSafe</a>:</p>
 <pre tabindex="0"><code>export TYPESAFE_API_KEY=...</code></pre>
 <p>The demo creates a temporary Git repository and runs a real failing login test. It needs no key and sends no network request.</p>
 </section>
@@ -111,7 +111,7 @@ cat events.jsonl | jevtool grep "Customer requests a refund" --format jsonl --js
 </tbody></table></div>
 <p style="margin-top:16px">A supported check describes evidence support, not a guarantee of code correctness. Initial thresholds need testing on your own examples. Start with advisory checks before making them a CI gate.</p>
 <p>Eval accuracy describes your suite on the model version you ran. It is a measurement, not a guarantee for unseen data.</p>
-<p><a href="https://github.com/jevtool/jevtool#readme">Full CLI reference</a> · <a href="https://www.npmjs.com/package/jevtool">npm</a> · <a href="/downloads/jevtool-0.2.0.tgz">Offline archive</a> · <a href="/downloads/SHA256SUMS.txt">Checksum</a></p>
+<p><a href="https://github.com/jevtool/jevtool#readme">Full CLI reference</a> · <a href="https://www.npmjs.com/package/jevtool">npm</a> · <a href="/downloads/jevtool-0.2.2.tgz">Offline archive</a> · <a href="/downloads/SHA256SUMS.txt">Checksum</a></p>
 </section>
 </article></main>
 <footer>Questions or integration help: <a href="mailto:hello@jevtool.dev">hello@jevtool.dev</a> · Runs on Jev by TypeSafe. Not affiliated with TypeSafe AI.</footer>

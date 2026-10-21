@@ -8,5 +8,8 @@
     "stage": "node scripts/stage.mjs",
     "dev": "node scripts/stage.mjs && npx wrangler@4.136.1 pages dev .deploy --kv SUBSCRIBERS --port 8788 --compatibility-date 2026-09-21",
     "deploy": "node scripts/stage.mjs && npx wrangler@4.136.1 pages deploy .deploy --project-name jevtool-site --branch main"
+  },
+  "devDependencies": {
+    "jevtool": "0.2.2"
   }
 }

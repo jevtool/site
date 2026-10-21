@@ -1,0 +1,52 @@
+[
+  {
+    "name": "chat-inbound-guard",
+    "description": "Chatbots: catch prompt injection and spam, and skip messages that need no reply.",
+    "cases": 21
+  },
+  {
+    "name": "code-review-lint",
+    "description": "Engineering: flag swallowed errors, logged secrets and misleading commit messages.",
+    "cases": 12
+  },
+  {
+    "name": "contract-risk",
+    "description": "Legal: flag auto-renewal, uncapped liability and one-sided change clauses.",
+    "cases": 12
+  },
+  {
+    "name": "entity-match",
+    "description": "Data cleaning: decide whether two messy records are the same company, person or product.",
+    "cases": 14
+  },
+  {
+    "name": "inbox-triage",
+    "description": "Personal: sort email into action, security, receipt, FYI, newsletter or spam.",
+    "cases": 14
+  },
+  {
+    "name": "lead-routing",
+    "description": "Sales: route inbound leads to a sales call, self-serve, nurture or disqualify.",
+    "cases": 12
+  },
+  {
+    "name": "model-routing",
+    "description": "LLM apps: decide whether a request needs a small, mid or frontier model.",
+    "cases": 19
+  },
+  {
+    "name": "rag-fact-check",
+    "description": "AI apps: check whether a source supports, contradicts or never mentions a generated claim.",
+    "cases": 16
+  },
+  {
+    "name": "review-moderation",
+    "description": "E-commerce: publish, hide or escalate product reviews under a store policy.",
+    "cases": 14
+  },
+  {
+    "name": "support-triage",
+    "description": "Customer support: route emails to cancel, refund, billing, bug or how-to, and flag chargeback threats.",
+    "cases": 27
+  }
+]
