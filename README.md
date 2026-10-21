@@ -1,6 +1,14 @@
 # jevtool.dev
 
-Static launch page, adapted minimally from `../site-draft-v0.html`. Plain HTML with inline CSS/JS; no frontend framework or build step. The original draft is outside this repository and must not be uploaded.
+Static site plus two Cloudflare Pages Functions, no framework.
+
+- `index.html`, `docs.html`, `eval.html`, `404.html`: the pages. Inline CSS/JS.
+- `functions/api/judge.js`: relays one Jev request per call to TypeSafe with the visitor's own key (header `X-TypeSafe-Key`). Nothing is stored or logged. The online runner (`eval.html`) runs the evaluation itself in the browser using the vendored `jevtool/eval-core`, so the relay never sees expected labels.
+- `functions/api/subscribe.js`: email signup into the `SUBSCRIBERS` KV namespace.
+- `suites/*.json`: the example suites copied from the CLI by `npm run package:cli`, plus `index.json`.
+- `scripts/stage.mjs`: copies the public allowlist into `.deploy/` and vendors `node_modules/jevtool/src/eval-core.mjs` to `/vendor/jevtool-eval-core.mjs`.
+
+The `jevtool` devDependency pins the CLI version whose core and client the functions and page use. Bump it together with the CLI release, then run `npm run package:cli` to refresh the offline archive, suites and `cli-readme.md`.
 
 ## Local preview
 
@@ -12,6 +20,10 @@ npm run dev
 ```
 
 Open http://localhost:8788. The local `SUBSCRIBERS` KV persists under the ignored `.wrangler/` directory. Local development does not write to production KV.
+
+## CI and deployment
+
+`.github/workflows/ci.yml` runs the tests and staging on every push and pull request. `.github/workflows/deploy.yml` deploys `main` to production and needs two repository secrets: `CLOUDFLARE_ACCOUNT_ID` (set) and `CLOUDFLARE_API_TOKEN` (a token with *Cloudflare Pages: Edit* on this account). Until the token is added, deploy manually as below.
 
 ## Cloudflare deployment
 
