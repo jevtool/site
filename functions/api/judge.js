@@ -63,7 +63,8 @@ export async function onRequest({ request }) {
     const result = await judge(state, questions);
     return json(200, { model: result.model, answers: result.answers, usage: result.usage ?? null });
   } catch (error) {
-    // The client never includes upstream bodies in its messages.
-    return json(502, { error: error.message });
+    // 424 rather than 502: Cloudflare replaces 5xx bodies with its own error
+    // page, which would hide the message. The client never echoes upstream bodies.
+    return json(424, { error: error.message });
   }
 }

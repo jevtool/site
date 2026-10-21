@@ -58,10 +58,10 @@ test('cross-site, wrong method and wrong media type are refused', async t => {
   assert.equal(calls.length, 0);
 });
 
-test('an upstream failure is reported as 502 without echoing the upstream body', async t => {
+test('an upstream failure is reported as 424 without echoing the upstream body', async t => {
   fakeTypeSafe(t, { status: 401 });
   const response = await onRequest({ request: request({ model: 'jev-1.13.0', state: 'x', questions }) });
-  assert.equal(response.status, 502);
+  assert.equal(response.status, 424);
   const body = await response.json();
   assert.match(body.error, /HTTP 401/);
   assert.ok(!JSON.stringify(body).includes('secret upstream detail'));
