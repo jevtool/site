@@ -10,6 +10,9 @@
     "deploy": "node scripts/stage.mjs && npx wrangler@4.136.1 pages deploy .deploy --project-name jevtool-site --branch main"
   },
   "devDependencies": {
-    "jevtool": "0.2.2"
+    "jevtool": "0.3.0"
+  },
+  "dependencies": {
+    "fzstd": "0.1.1"
   }
 }

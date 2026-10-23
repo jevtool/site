@@ -25,7 +25,7 @@ ul,ol{padding-left:24px}li{margin:8px 0}.table-wrap{overflow-x:auto}table{border
 <body>
 <a class="skip" href="#main">Skip to content</a>
 <div class="wrap">
-<nav aria-label="Documentation navigation"><a href="/">jevtool.dev</a><a href="#eval">Evaluate</a><a href="#plugins">Plugins</a><a href="#verify">Delivery checks</a><a href="#grep">Semantic filter</a><a href="https://github.com/jevtool/jevtool">GitHub</a></nav>
+<nav aria-label="Documentation navigation"><a href="/">jevtool.dev</a><a href="/leaderboard">Leaderboard</a><a href="#eval">Evaluate</a><a href="#decisions-api">Decisions API</a><a href="#plugins">Plugins</a><a href="#verify">Delivery checks</a><a href="#grep">Semantic filter</a><a href="https://github.com/jevtool/jevtool">GitHub</a></nav>
 <header><h1>From install<br>to your first eval.</h1><p>One CLI and three Claude Code plugins. Bring your own TypeSafe key.</p></header>
 <main id="main"><article>
 <section id="install">
@@ -65,6 +65,31 @@ jevtool eval my-suite.json --order-check            # Choices re-asked with opti
 jevtool eval my-suite.json --min-accuracy 0.9 --json --output eval.json   # CI gate</code></pre>
 <p>For each question you get accuracy, accuracy per tag, every miss with its certainty, and a suggested cutoff: the lowest certainty at which the automatically handled cases still reach <code>target</code>. Send the cases below it to a person or a larger model. Confident misses usually mean the criteria are read literally; add the missing boundary and re-run the whole suite to check nothing regressed.</p>
 <p>Each case's <code>state</code> and the questions are sent to TypeSafe. Labels stay on your machine.</p>
+</section>
+<section id="decisions-api">
+<h2>Decisions API</h2>
+<p>One endpoint for every System One decision model: Jev direct from TypeSafe, plus everything on OpenRouter's Decisions catalog (Mercury Decide, Clef, Solar Decide, Kev, Decider and more). Bring your own key: send your TypeSafe or OpenRouter API key, and it is forwarded to that provider for this request only. jevtool does not resell model access, store keys or log requests. Free.</p>
+<pre tabindex="0"><code>curl https://jevtool.dev/v1/decisions \
+  -H "Authorization: Bearer $OPENROUTER_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "inception/mercury-decide",
+    "models": ["typesafe/jev-1.13", "cloudflare/clef-flash"],
+    "state": {"ticket": "Charged twice, please refund one."},
+    "questions": {
+      "team": {"type": "choice", "instructions": "Which team owns `ticket`?",
+               "criteria": {"billing": "Money", "support": "How-to", "bugs": "Broken"}},
+      "urgent": {"type": "noul", "instructions": "Is `ticket` urgent?"}
+    }
+  }'</code></pre>
+<ul>
+<li><strong>Routing.</strong> A model ID with a slash (<code>inception/mercury-decide</code>, <code>typesafe/jev-1.13</code>) goes to OpenRouter and needs an OpenRouter key. One without (<code>jev-latest</code>, <code>jev-1.14.0</code>) goes to TypeSafe and needs a TypeSafe key. Override with <code>X-Provider: typesafe|openrouter</code>.</li>
+<li><strong>Fallbacks.</strong> <code>models</code> lists up to four backups, tried in order if a model errors. The response's <code>fallback</code> field says which one answered. A rejected key or an empty balance stops the chain.</li>
+<li><strong>Response.</strong> The provider's <code>answers</code> and <code>usage</code>, plus <code>id</code> and <code>provider</code>. Errors are <code>{"error": {"code", "message"}}</code> with 400, 401, 402, 404, 413, 415, 424 or 429.</li>
+<li><strong>TypeSafe SDKs.</strong> <code>POST /v1/systemone</code> is the same endpoint, so the official Python and JavaScript SDKs work by setting <code>TYPESAFE_BASE_URL=https://jevtool.dev</code>.</li>
+<li><strong>Models.</strong> <code>GET https://jevtool.dev/v1/models</code> lists every callable model and its input price. The <a href="/leaderboard">leaderboard</a> shows how each one does on the same labeled suites.</li>
+<li><strong>Browsers.</strong> CORS is open, so a front end can call it with a key the user supplies. Never ship your own key in client code.</li>
+</ul>
 </section>
 <section id="plugins">
 <h2>Claude Code plugins</h2>

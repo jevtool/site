@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decision model leaderboard — jevtool</title>
+<meta name="description" content="Weekly accuracy, automation share, latency and billed cost of every System One decision model on OpenRouter (Jev, Clef, Solar Decide, Mercury Decide, Kev, Decider and more), measured with jevtool eval.">
+<link rel="canonical" href="https://jevtool.dev/leaderboard">
+<meta property="og:title" content="Decision model leaderboard — jevtool">
+<meta property="og:description" content="Jev vs every alternative on the same labeled suites, rerun weekly.">
+<meta name="theme-color" content="#f386a1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700&family=Fragment+Mono&display=swap">
+<style>
+:root{--pink:#f386a1;--ink:#1e1e1e;--paper:#fefefe;--line:#e5e5e5;--mute:#49393f;--green:#087d42;--red:#b3261e;
+  --sans:"Host Grotesk","Helvetica Neue",Arial,sans-serif;--mono:"Fragment Mono","JetBrains Mono",Menlo,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--pink);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;padding:0 clamp(16px,4vw,40px) 64px}
+a{color:inherit}
+.wrap{max-width:1080px;margin:0 auto}
+nav{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--ink);flex-wrap:wrap}
+nav .brand{font-weight:600;text-decoration:none}
+nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0;font-size:14px}
+nav a:not(.brand){text-decoration:none}nav a:hover{text-decoration:underline}
+.skip{position:absolute;top:8px;left:16px;background:var(--ink);color:var(--paper);padding:8px 12px;z-index:2;transform:translateY(-160%)}.skip:focus{transform:none}
+h1{font-size:clamp(34px,5vw,56px);line-height:1;letter-spacing:-.03em;font-weight:500;margin:36px 0 10px}
+h2{font-size:20px;font-weight:600;margin:28px 0 10px}
+p{margin:0 0 10px;max-width:72ch}
+.lede{font-size:17px}
+.win{background:var(--paper);border:1px solid var(--ink);box-shadow:3px 3px 0 var(--ink);margin-top:18px}
+.win .bar{background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:11px;padding:3px 8px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tablewrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;white-space:nowrap}
+th{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:400;background:#f6f6f6;cursor:pointer;user-select:none}
+th[aria-sort]::after{content:" ↕";opacity:.4}
+th[aria-sort=descending]::after{content:" ↓";opacity:1}th[aria-sort=ascending]::after{content:" ↑";opacity:1}
+td.n{font-variant-numeric:tabular-nums}
+tr.jev td{background:#fff3f6}
+code{font-family:var(--mono);font-size:12.5px}
+.bar-cell{display:flex;align-items:center;gap:8px}
+.meter{display:inline-block;width:70px;height:8px;border:1px solid var(--ink);background:var(--paper)}
+.meter i{display:block;height:100%;background:var(--green)}
+.dim{color:var(--mute)}
+.fine{font-size:13px;color:var(--mute);margin-top:12px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.chip{font-family:var(--mono);font-size:12px;border:1px solid var(--ink);background:var(--paper);color:var(--ink);padding:4px 9px;cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+ul.caveats{margin:8px 0 0;padding-left:18px;max-width:80ch}
+pre{font-family:var(--mono);font-size:12.5px;background:#f6f6f6;border:1px solid var(--line);padding:10px;overflow-x:auto}
+footer{margin-top:40px;font-family:var(--mono);font-size:11px;border-top:1px solid var(--ink);padding-top:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+a:focus-visible,button:focus-visible,th:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+@media(max-width:480px){nav ul{order:3;flex-basis:100%;gap:18px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="wrap">
+<nav aria-label="Main navigation">
+  <a class="brand" href="/">jevtool.dev</a>
+  <ul><li><a href="/leaderboard">Leaderboard</a></li><li><a href="/eval">Run an eval</a></li><li><a href="/docs.html">Docs</a></li><li><a href="https://github.com/jevtool/benchmarks">GitHub</a></li></ul>
+</nav>
+<main id="main">
+<h1>Which decision model should you trust?</h1>
+<p class="lede">Jev started the System One category; now OpenRouter lists dozens of models that take the same request. We run every one of them against the same labeled suites each week and record accuracy, how much you could automate, latency and the billed cost.</p>
+
+<div class="win">
+  <div class="bar"><span>Overall</span><span id="meta">loading…</span></div>
+  <div class="tablewrap"><table id="overall" aria-describedby="meta"><thead><tr>
+    <th data-k="rank" aria-sort="ascending" tabindex="0">#</th>
+    <th data-k="model" aria-sort="none" tabindex="0">Model</th>
+    <th data-k="meanAccuracy" aria-sort="none" tabindex="0">Mean accuracy</th>
+    <th data-k="meanAutomated" aria-sort="none" tabindex="0">Automated at 95%</th>
+    <th data-k="medianLatencyMs" aria-sort="none" tabindex="0">Median latency</th>
+    <th data-k="costPer1kCalls" aria-sort="none" tabindex="0">Cost / 1k calls</th>
+  </tr></thead><tbody><tr><td colspan="6" class="dim">Loading results…</td></tr></tbody></table></div>
+</div>
+
+<h2>By suite</h2>
+<div class="chips" id="suiteChips" role="group" aria-label="Suites"></div>
+<div class="win"><div class="bar"><span id="suiteTitle">Suite</span><span id="suiteDesc"></span></div>
+  <div class="tablewrap"><table id="bysuite"><thead><tr><th>#</th><th>Model</th><th>Accuracy</th><th>Automated at 95%</th></tr></thead><tbody></tbody></table></div></div>
+
+<h2 id="unranked-title" hidden>Not ranked</h2>
+<ul id="unranked" class="caveats"></ul>
+
+<h2>Read this before quoting a number</h2>
+<ul class="caveats" id="caveats"></ul>
+
+<h2>Run it on your data</h2>
+<p>The leaderboard tells you which models are worth trying. Only your own labeled cases tell you which one to ship.</p>
+<pre>export OPENROUTER_API_KEY=...
+npx jevtool eval my-suite.json --provider openrouter \
+  --model typesafe/jev-1.13 --compare inception/mercury-decide,cloudflare/clef-flash</pre>
+<p class="fine">Method, raw results per run, and how to contribute a suite: <a href="https://github.com/jevtool/benchmarks">github.com/jevtool/benchmarks</a>. Not affiliated with TypeSafe, OpenRouter or any model publisher.</p>
+</main>
+<footer><span>jevtool.dev · <a href="mailto:hello@jevtool.dev">hello@jevtool.dev</a> · <a href="https://github.com/jevtool">GitHub</a></span><span>Results are measurements on small suites, not guarantees.</span></footer>
+</div>
+
+<script>
+(function () {
+  var SOURCES = ['https://raw.githubusercontent.com/jevtool/benchmarks/main/leaderboard.json', '/leaderboard.json'];
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var pct = function (v) { return v == null ? '–' : Math.round(v * 100) + '%'; };
+  var meter = function (v) { return '<span class="bar-cell"><span class="meter"><i style="width:' + (v == null ? 0 : Math.round(v * 100)) + '%"></i></span>' + pct(v) + '</span>'; };
+  var isJev = function (m) { return /^typesafe\//.test(m); };
+
+  function load(i) {
+    if (i >= SOURCES.length) { $('meta').textContent = 'results unavailable'; $('overall').tBodies[0].innerHTML = '<tr><td colspan="6">Could not load results. See <a href="https://github.com/jevtool/benchmarks">the repository</a>.</td></tr>'; return; }
+    fetch(SOURCES[i], { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(); return r.json(); }).then(render).catch(function () { load(i + 1); });
+  }
+
+  var data, sortKey = 'rank', sortDir = 1;
+  function render(d) {
+    data = d;
+    var ranked = d.models.filter(function (m) { return m.complete; });
+    $('meta').textContent = 'run ' + d.date + ' · ' + ranked.length + ' ranked of ' + d.models.length + ' models · ' + d.suites.length + ' suites · jevtool ' + d.jevtool;
+    drawOverall();
+    $('caveats').innerHTML = d.caveats.map(function (c) { return '<li>' + esc(c) + '</li>'; }).join('');
+    var un = d.models.filter(function (m) { return !m.complete; });
+    if (un.length) { $('unranked-title').hidden = false; $('unranked').innerHTML = un.map(function (m) { return '<li><code>' + esc(m.model) + '</code>: ' + m.failed + ' of ' + m.requests + ' requests failed' + (m.firstError ? ', e.g. “' + esc(m.firstError) + '”' : '') + '</li>'; }).join(''); }
+    $('suiteChips').innerHTML = '';
+    d.suites.forEach(function (s, i) {
+      var b = document.createElement('button'); b.className = 'chip'; b.type = 'button'; b.textContent = s.name; b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false');
+      b.addEventListener('click', function () { [].forEach.call($('suiteChips').children, function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); }); drawSuite(s); });
+      $('suiteChips').appendChild(b);
+    });
+    if (d.suites.length) drawSuite(d.suites[0]);
+  }
+
+  function drawOverall() {
+    var rows = data.models.filter(function (m) { return m.complete; }).slice().sort(function (a, b) {
+      var x = a[sortKey], y = b[sortKey];
+      if (sortKey === 'model') return sortDir * String(x).localeCompare(String(y));
+      if (x == null) return 1; if (y == null) return -1; return sortDir * (x - y);
+    });
+    $('overall').tBodies[0].innerHTML = rows.map(function (m) {
+      return '<tr' + (isJev(m.model) ? ' class="jev"' : '') + '><td class="n">' + m.rank + '</td><td><code>' + esc(m.model) + '</code>' + (m.note ? ' <span class="dim" title="' + esc(m.note) + '">†</span>' : '') + '</td><td class="n">' + meter(m.meanAccuracy) + '</td><td class="n">' + meter(m.meanAutomated) + '</td><td class="n">' + (m.medianLatencyMs == null ? '–' : m.medianLatencyMs + ' ms') + '</td><td class="n">' + (m.costPer1kCalls == null ? '–' : '$' + m.costPer1kCalls.toFixed(4)) + '</td></tr>';
+    }).join('');
+  }
+
+  function drawSuite(s) {
+    $('suiteTitle').textContent = s.name + ' · ' + s.cases + ' cases'; $('suiteDesc').textContent = s.description || '';
+    var rows = data.models.filter(function (m) { return m.complete && m.suites[s.name]; })
+      .map(function (m) { return { model: m.model, acc: m.suites[s.name].accuracy, auto: m.suites[s.name].automated }; })
+      .sort(function (a, b) { return (b.acc - a.acc) || (b.auto - a.auto); });
+    $('bysuite').tBodies[0].innerHTML = rows.map(function (r, i) { return '<tr' + (isJev(r.model) ? ' class="jev"' : '') + '><td class="n">' + (i + 1) + '</td><td><code>' + esc(r.model) + '</code></td><td class="n">' + meter(r.acc) + '</td><td class="n">' + meter(r.auto) + '</td></tr>'; }).join('');
+  }
+
+  [].forEach.call(document.querySelectorAll('#overall th'), function (th) {
+    var go = function () {
+      var k = th.getAttribute('data-k');
+      if (sortKey === k) sortDir = -sortDir; else { sortKey = k; sortDir = (k === 'rank' || k === 'model' || k === 'medianLatencyMs' || k === 'costPer1kCalls') ? 1 : -1; }
+      [].forEach.call(document.querySelectorAll('#overall th'), function (o) { o.setAttribute('aria-sort', o === th ? (sortDir === 1 ? 'ascending' : 'descending') : 'none'); });
+      if (data) drawOverall();
+    };
+    th.addEventListener('click', go); th.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+  });
+  load(0);
+})();
+</script>
+</body>
+</html>

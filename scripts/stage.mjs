@@ -5,7 +5,7 @@ const root = new URL('../', import.meta.url);
 const output = new URL('.deploy/', root);
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
-const files = ['index.html', 'docs.html', 'eval.html', '404.html', 'cli-readme.md', 'favicon.svg', 'robots.txt', 'sitemap.xml', '_headers',
+const files = ['index.html', 'docs.html', 'eval.html', 'leaderboard.html', 'leaderboard.json', '404.html', 'cli-readme.md', 'favicon.svg', 'robots.txt', 'sitemap.xml', '_headers',
   'downloads/jevtool-0.2.2.tgz', 'downloads/SHA256SUMS.txt', 'examples/acceptance.json', 'examples/payments.jsonl',
   ...(await readdir(new URL('suites/', root))).filter(f => f.endsWith('.json')).map(f => `suites/${f}`)];
 // The browser runs the same evaluation core as the CLI.
